@@ -1,0 +1,17 @@
+.idea
+
+# Firebase
+.firebase/*
+firebase-debug.log*
+firebaserc
+
+# Secrets and configuration
+.env
+
+# Build and dependency directories
+node_modules/
+functions/node_modules/
+.next/
+
+# Other generated files
+*.log

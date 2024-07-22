@@ -6,12 +6,12 @@ import {
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC6k11ivez4VoIbl2x9nxIOSlolqMDv3cQ',
-  authDomain: 'fir-web-codelab-1eee7.firebaseapp.com',
-  projectId: 'fir-web-codelab-1eee7',
-  storageBucket: 'fir-web-codelab-1eee7.appspot.com',
-  messagingSenderId: '106692292862',
-  appId: '1:106692292862:web:13b09770e0d3cab97f35af',
+  apiKey: "AIzaSyCGzjPbE3MCph6S-3xwPS7Pp_X7a72btr4",
+  authDomain: "bot-or-not-erg237.firebaseapp.com",
+  projectId: "bot-or-not-erg237",
+  storageBucket: "bot-or-not-erg237.appspot.com",
+  messagingSenderId: "195354824452",
+  appId: "1:195354824452:web:f087178204f04d785a8a51"
 };
 
 const STATE_MAP = {

@@ -107,12 +107,21 @@ exports.getImage = onCall(async (request) => {
       });
 
       const articleIds = newsData.results.map((article) => article.article_id);
-      const articlesWithExistingDocuments = await collectionRef
-        .where(FieldPath.documentId(), "in", articleIds)
-        .get();
+      const articlesWithExistingDocuments = [];
+
+      for (let counter = 0; counter < articleIds.length; counter += 10) {
+        const articleIdsSlice = articleIds.slice(counter, counter + 10);
+        const articlesWithExistingDocumentsSlice = await collectionRef
+          .where(FieldPath.documentId(), "in", articleIdsSlice)
+          .get();
+        articlesWithExistingDocuments.push(
+          ...articlesWithExistingDocumentsSlice.docs
+        );
+      }
+
       const articlesToSave = newsData.results.filter(
         (article) =>
-          !articlesWithExistingDocuments.docs.some(
+          !articlesWithExistingDocuments.some(
             (doc) => doc.id === article.article_id
           )
       );

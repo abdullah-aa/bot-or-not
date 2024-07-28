@@ -1,17 +1,24 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldPath } = require("firebase-admin/firestore");
+const { getFirestore } = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
 
 const fetch = require("node-fetch");
 
-const { INTERESTS } = require("./constants");
+const { INTERESTS, TO_DELETE_KEY } = require("./constants");
 
 require("dotenv").config();
 
 initializeApp();
 
+/**
+ * Creates or updates the next page document for a given interest.
+ * @param {FirebaseFirestore.Firestore} db - Firestore database instance.
+ * @param {string} interest - The interest category.
+ * @param {Object} [newNextPageDoc=null] - The new next page document data.
+ * @returns {Promise<Object>} - The next page document data.
+ */
 async function createOrUpdateNextPageDocument(
   db,
   interest,
@@ -37,6 +44,12 @@ async function createOrUpdateNextPageDocument(
   return docToReturn;
 }
 
+/**
+ * Cloud Function to get an image based on user interest.
+ * @param {Object} request - The request object containing data and auth information.
+ * @returns {Promise<Object>} - The image document data.
+ * @throws {HttpsError} - Throws an error if the user is not authenticated or if an invalid interest is provided.
+ */
 exports.getImage = onCall(async (request) => {
   const { interest } = request.data;
   const { uid } = request.auth;
@@ -57,24 +70,28 @@ exports.getImage = onCall(async (request) => {
   }
 
   const db = getFirestore();
-  const collectionRef = db.collection(interest);
+  const imageCollection = db.collection(interest);
 
   let nextPageDoc = await createOrUpdateNextPageDocument(db, interest);
-  let imagesToReturnFrom = [];
+  const imagesToReturnFrom = [];
 
-  const imagesWithoutUserInputSnapshot = await collectionRef
-    .where(`human_${uid}`, "==", null)
+  // Fetch 'humans' collections which contain user's id
+  const humansWithUserInputSnapshot = await db
+    .collectionGroup("humans")
+    .where("id", "==", uid)
     .get();
+  // Create set of image document id's the user has already interacted with
+  const imagesWithUserInputSet = new Set(
+    humansWithUserInputSnapshot.docs.map((doc) => doc.ref.parent.parent.id)
+  );
 
-  if (!imagesWithoutUserInputSnapshot.empty) {
-    imagesToReturnFrom = imagesWithoutUserInputSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        imageUrl: data.imageUrl,
-        description: data.description,
-      };
-    });
+  const allImagesSnapshot = await imageCollection.get();
+  const allImagesWithoutUserInput = allImagesSnapshot.docs
+    .filter((image) => !imagesWithUserInputSet.has(image.id))
+    .map((doc) => doc.data());
+
+  if (allImagesWithoutUserInput.length > 0) {
+    imagesToReturnFrom.push(...allImagesWithoutUserInput);
   } else {
     for (
       let attempts = 0;
@@ -106,19 +123,27 @@ exports.getImage = onCall(async (request) => {
         nextPage: newsData.nextPage,
       });
 
-      const articleIds = newsData.results.map((article) => article.article_id);
+      // Check for existing documents in batches of 10
       const articlesWithExistingDocuments = [];
-
-      for (let counter = 0; counter < articleIds.length; counter += 10) {
+      for (
+        let counter = 0,
+          articleIds = newsData.results.map((article) => article.article_id);
+        counter < articleIds.length;
+        counter += 10
+      ) {
         const articleIdsSlice = articleIds.slice(counter, counter + 10);
-        const articlesWithExistingDocumentsSlice = await collectionRef
-          .where(FieldPath.documentId(), "in", articleIdsSlice)
+        const articlesWithExistingDocumentsSlice = await imageCollection
+          .where("id", "in", articleIdsSlice)
           .get();
-        articlesWithExistingDocuments.push(
-          ...articlesWithExistingDocumentsSlice.docs
-        );
+
+        if (articlesWithExistingDocumentsSlice.docs.length > 0) {
+          articlesWithExistingDocuments.push(
+            ...articlesWithExistingDocumentsSlice.docs
+          );
+        }
       }
 
+      // Filter out articles that already have documents
       const articlesToSave = newsData.results.filter(
         (article) =>
           !articlesWithExistingDocuments.some(
@@ -130,23 +155,18 @@ exports.getImage = onCall(async (request) => {
         const batch = db.batch();
 
         articlesToSave.forEach((article) => {
-          const articleRef = collectionRef.doc(article.article_id);
-
-          batch.set(
-            articleRef,
-            {
-              description: article.description,
-              imageUrl: article.image_url,
-              link: article.link,
-            },
-            { merge: true }
-          );
-
-          imagesToReturnFrom.push({
+          const imageRef = imageCollection.doc(article.article_id);
+          const imageDocument = {
             id: article.article_id,
-            imageUrl: article.image_url,
             description: article.description,
-          });
+            imageUrl: article.image_url,
+            link: article.link,
+          };
+          imagesToReturnFrom.push(imageDocument);
+
+          batch.set(imageRef, imageDocument, { merge: true });
+          batch.set(imageRef.collection("humans").doc(TO_DELETE_KEY), {});
+          batch.set(imageRef.collection("bots").doc(TO_DELETE_KEY), {});
         });
 
         await batch.commit();

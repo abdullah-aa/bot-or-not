@@ -16,57 +16,74 @@
   </head>
 
   <body>
-    <h3 class="flexVertical">Bot -OR- Not</h3>
-    <form id="authForm" class="flexVertical hidden">
-      <div class="marginSm flexAcross">
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" />
+    <h3 class="flexCenter">Bot -OR- Not</h3>
+
+    <form id="authForm" class="flexColCenter hidden">
+      <div class="section flexCenter smallFlexGap">
+        <div class="quarterSection flexColEnd">
+          <label class="marginSmTopAndBottom" for="email">Email:</label>
+          <label class="marginSmTopAndBottom" for="password">Password:</label>
+        </div>
+        <div class="halfSection flexColStart">
+          <input class="marginSmTopAndBottom" type="text" id="email" name="email" />
+          <input class="marginSmTopAndBottom" type="password" id="password" name="password" />
+        </div>
       </div>
-      <div class="marginSm flexAcross">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" />
-      </div>
-      <button id="authSubmitButton" type="submit" class="marginSm">
-        Submit
-      </button>
+      <button id="authSubmitButton" type="submit" class="marginSmTopAndBottom">Submit</button>
     </form>
-    <div id="authButtons" class="flexVertical">
-      <strong id="optionSpan" class="marginSm hidden">- OR -</strong>
-      <button id="signupButton" class="marginSm">Sign Up</button>
-      <button id="loginButton" class="marginSm">Log In</button>
+    <div id="authButtons" class="flexColCenter">
+      <strong id="optionSpan" class="marginSmTopAndBottom hidden">- OR -</strong>
+      <button id="signupButton" class="marginSmTopAndBottom">Sign Up</button>
+      <button id="loginButton" class="marginSmTopAndBottom">Log In</button>
     </div>
 
-    <form id="interestsForm" class="flexVertical hidden">
+    <form id="interestsForm" class="flexColCenter hidden">
       <fieldset>
         <legend>What are you interested in today?</legend>
         <div class="marginSm">
-          <div class="flexAcross">
+          <div class="flexSpaceBetween">
             <label for="Entertainment">Entertainment</label>
-            <input type="radio" id="Entertainment" name="interest" checked />
+            <input type="radio" id="Entertainment" value="Entertainment" name="interest" checked />
           </div>
         </div>
         <div class="marginSm">
-          <div class="flexAcross">
+          <div class="flexSpaceBetween">
             <label for="Business">Business</label>
-            <input type="radio" id="Business" name="interest" />
+            <input type="radio" id="Business" value="Business" name="interest" />
           </div>
         </div>
         <div class="marginSm">
-          <div class="flexAcross">
+          <div class="flexSpaceBetween">
             <label for="Sports">Sports</label>
-            <input type="radio" id="Sports" name="interest" />
+            <input type="radio" id="Sports" value="Sports" name="interest" />
           </div>
         </div>
         <div class="marginSm">
-          <div class="flexAcross">
+          <div class="flexSpaceBetween">
             <label for="Politics">Politics</label>
-            <input type="radio" id="Politics" name="interest" />
+            <input type="radio" id="Politics" value="Politics" name="interest" />
           </div>
         </div>
       </fieldset>
-      <button id="interestsSubmitButton" class="marginSm">Submit</button>
+      <button id="interestsSubmitButton" type="submit" class="marginSm">Submit</button>
     </form>
 
+    <div id="loadingScreen" class="flexColCenter hidden">
+      <img src="img/runner.gif" alt="Stick man running endlessly" class="imageElement" />
+      <h5 id="loadingHeader">Loading Image...</h5>
+    </div>
+
+    <div id="promptScreen" class="flexColCenter hidden">
+      <img id="promptImage" class="imageElement" />
+      <h5 id="promptText"></h5>
+      <form id="promptForm" class="flexColCenter">
+        <div class="flexColCenter">
+          <label for="promptInput">W?</label>
+          <input type="text" id="promptInput" name="promptInput" />
+          <button id="promptButton" type="submit" class="marginSm">Submit</button>
+        </div>
+      </form>
+    </div>
 
     <div id="errorDiv" class="hidden">
       <p id="errorCode"></p>

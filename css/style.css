@@ -72,14 +72,6 @@ fieldset {
   padding: 0;
 }
 
-/*
- * Allow only vertical resizing of textareas.
- */
-
-textarea {
-  resize: vertical;
-}
-
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
@@ -245,6 +237,10 @@ textarea {
   }
 }
 
+/****************************************************
+ * Custom CSS
+ ****************************************************/
+
 .section {
   width: 85%;
 }
@@ -261,13 +257,22 @@ textarea {
   margin: 1rem;
 }
 
-.smallFlexGap {
+.xSmallFlexGap {
     gap: 0.25rem;
+}
+
+.smallFlexGap {
+    gap: 0.5rem;
 }
 
 .marginSmTopAndBottom {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+marginXsTopAndBottom {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .flexSpaceBetween {
@@ -298,9 +303,15 @@ textarea {
   align-items: center;
 }
 
+.flexDeadCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .imageElement {
-  width: 25rem;
-  height: auto;
+  width: 100%;
+  max-height: 25rem;
 }
 
 legend {
@@ -308,4 +319,10 @@ legend {
   font-weight: bold;
   text-align: center;
   padding: 10px;
+}
+
+textarea {
+  width: 20rem;
+  height: 5rem;
+  resize: none;
 }

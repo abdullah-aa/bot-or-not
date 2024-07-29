@@ -20,8 +20,9 @@ const STATE_MAP = {
   LOGGED_IN: 'loggedIn',
   SIGNUP: 'signup',
   LOGIN: 'login',
-  NEW_LOGIN: 'newLogin',
 };
+
+const MAX_PROMPT_LENGTH = 150;
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -45,11 +46,16 @@ const promptScreen = document.getElementById('promptScreen');
 const promptImage = document.getElementById('promptImage');
 const promptText = document.getElementById('promptText');
 
+const promptForm = document.getElementById('promptForm');
+const promptInput = document.getElementById('promptInput');
+const inputPromptCharCount = document.getElementById('inputPromptCharCount');
+const promptSkipButton = document.getElementById('promptSkipButton');
+
 const errorDiv = document.getElementById('errorDiv');
 const errorCode = document.getElementById('errorCode');
 const errorMessage = document.getElementById('errorMessage');
 
-let _USER, _AUTH_MODE;
+let _USER, _AUTH_MODE, _INTEREST;
 
 const renderError = (error = null) => {
     if (error) {
@@ -104,26 +110,41 @@ authForm.addEventListener('submit', (event) => {
   }
 });
 
+const getPromptImage = () => {
+    loadingScreen.classList.remove('hidden');
+
+    const getImage = httpsCallable(functions, 'getImage');
+    getImage({ interest: _INTEREST })
+        .then((result) => {
+            loadingScreen.classList.add('hidden');
+
+            promptImage.src = result.data.imageUrl;
+            promptText.innerHTML = result.data.description ? `Here's what this image is about: <h5><q>${result.data.description.replace('[...]', '')}</q></h5>` : '<h6>Only the image to work with here sorry... 😓</h6>';
+            promptInput.value = '';
+            inputPromptCharCount.innerText = `${MAX_PROMPT_LENGTH}/${MAX_PROMPT_LENGTH} characters left`;
+
+            promptScreen.classList.remove('hidden');
+        })
+        .catch(renderError);
+}
+
 interestsForm.addEventListener('submit',(event) => {
     event.preventDefault();
 
     interestsForm.classList.add('hidden');
 
     const interestData = new FormData(event.target);
-    const interest = interestData.get('interest');
+    _INTEREST = interestData.get('interest');
 
-    loadingScreen.classList.remove('hidden');
+    getPromptImage();
+});
 
-    const getImage = httpsCallable(functions, 'getImage');
-    getImage({ interest })
-      .then((result) => {
-          loadingScreen.classList.add('hidden');
+promptInput.addEventListener('input', () => {
+    const charCount = promptInput.value.length;
+    inputPromptCharCount.innerText = `${MAX_PROMPT_LENGTH - charCount}/${MAX_PROMPT_LENGTH} characters left`;
+});
 
-          promptImage.src = result.data.imageUrl;
-          promptText.innerText = result.data.description && result.data.description.replace('[...]', '');
-          promptScreen.classList.remove('hidden');
-
-          alert(result.data.id);
-      })
-      .catch(renderError);
+promptSkipButton.addEventListener('click', () => {
+    promptScreen.classList.add('hidden');
+    getPromptImage();
 });

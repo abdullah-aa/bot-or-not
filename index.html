@@ -19,7 +19,7 @@
     <h3 class="flexCenter">Bot -OR- Not</h3>
 
     <form id="authForm" class="flexColCenter hidden">
-      <div class="section flexCenter smallFlexGap">
+      <div class="section flexCenter xSmallFlexGap">
         <div class="quarterSection flexColEnd">
           <label class="marginSmTopAndBottom" for="email">Email:</label>
           <label class="marginSmTopAndBottom" for="password">Password:</label>
@@ -32,7 +32,6 @@
       <button id="authSubmitButton" type="submit" class="marginSmTopAndBottom">Submit</button>
     </form>
     <div id="authButtons" class="flexColCenter">
-      <strong id="optionSpan" class="marginSmTopAndBottom hidden">- OR -</strong>
       <button id="signupButton" class="marginSmTopAndBottom">Sign Up</button>
       <button id="loginButton" class="marginSmTopAndBottom">Log In</button>
     </div>
@@ -74,13 +73,23 @@
     </div>
 
     <div id="promptScreen" class="flexColCenter hidden">
-      <img id="promptImage" class="imageElement" />
-      <h5 id="promptText"></h5>
+      <div class="section">
+        <img id="promptImage" class="imageElement" />
+        <div id="promptText" class="marginSmTopAndBottom"></div>
+      </div>
       <form id="promptForm" class="flexColCenter">
-        <div class="flexColCenter">
-          <label for="promptInput">W?</label>
-          <input type="text" id="promptInput" name="promptInput" />
-          <button id="promptButton" type="submit" class="marginSm">Submit</button>
+        <div class="flexColCenter smallFlexGap">
+          <label for="promptInput">Say something about this image!</label>
+          <textarea
+            id="promptInput"
+            name="promptInput"
+            maxlength="150"
+            placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
+          <span id="inputPromptCharCount"></span>
+          <div class="flexSpaceBetween">
+            <button id="promptSkipButton" type="button" class="marginSm">Get Another</button>
+            <button id="promptButton" type="submit" class="marginSm">Submit</button>
+          </div>
         </div>
       </form>
     </div>

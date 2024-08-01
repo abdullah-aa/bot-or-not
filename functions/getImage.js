@@ -1,5 +1,5 @@
 const { HttpsError } = require("firebase-functions/v2/https");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
 const logger = require("firebase-functions/logger");
 const fetch = require("node-fetch");
@@ -128,6 +128,7 @@ const createImagesFromNewsAPI = async (db, imageCollection) => {
           description: article.description,
           imageUrl: article.image_url,
           link: article.link,
+          createdAt: FieldValue.serverTimestamp(),
         };
 
         batch.set(imageRef, imageDocument, { merge: true });

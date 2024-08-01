@@ -1,13 +1,11 @@
 const { HttpsError } = require("firebase-functions/v2/https");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getFirestore } = require("firebase-admin/firestore");
 
 const { INTERESTS } = require("./constants");
 
 /**
  * Creates a prompt for a specific image and interest category, and saves it to the 'humans' sub collection.
- * @param {string} request.data.imageId - The ID of the image to associate the prompt with.
- * @param {string} request.data.interest - The interest category the image belongs to.
- * @param {string} request.data.prompt - The content of the prompt.
+ * @param {Object} request - The request object containing data and auth information.
  * @returns {Promise<Object>} - An object indicating the result of the operation.
  * @throws {HttpsError} - Throws an error if the user is not authenticated or if an invalid interest category is provided.
  */
@@ -28,24 +26,23 @@ exports.createPrompt = async (request) => {
 
   const db = getFirestore();
 
-  db.collection(interest)
+  const imageQuerySnapshot = await db
+    .collection(interest)
     .where("id", "==", imageId)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const imageRef = querySnapshot.docs[0];
+    .get();
 
-        imageRef
-          .collection("humans")
-          .doc(uid)
-          .set(
-            {
-              [FieldValue.serverTimestamp()]: prompt,
-            },
-            { merge: true }
-          );
-      }
-    });
+  if (!imageQuerySnapshot.empty) {
+    const imageRef = imageQuerySnapshot.docs[0].ref;
+    const userRecord = imageRef.collection("humans").doc(uid);
+
+    await userRecord.set(
+      {
+        id: uid,
+        [Date.now()]: prompt,
+      },
+      { merge: true }
+    );
+  }
 
   return { result: "Submitted!" };
 };

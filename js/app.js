@@ -55,7 +55,7 @@ const errorDiv = document.getElementById('errorDiv');
 const errorCode = document.getElementById('errorCode');
 const errorMessage = document.getElementById('errorMessage');
 
-let _USER, _AUTH_MODE, _INTEREST;
+let _USER, _AUTH_MODE, _INTEREST, _IMAGE;
 
 const renderError = (error = null) => {
     if (error) {
@@ -116,26 +116,26 @@ const getPromptImage = () => {
     const getImage = httpsCallable(functions, 'getImage');
     getImage({ interest: _INTEREST })
         .then((result) => {
-            loadingScreen.classList.add('hidden');
+            _IMAGE = result.data;
 
-            promptImage.src = result.data.imageUrl;
-            promptText.innerHTML = result.data.description ? `Here's what this image is about: <h5><q>${result.data.description.replace('[...]', '')}</q></h5>` : '<h6>Only the image to work with here sorry... 😓</h6>';
+            promptImage.src = _IMAGE.imageUrl;
+            promptText.innerHTML = _IMAGE.description ? `Here's what this image is about: <h5><q>${_IMAGE.description.replace('[...]', '')}</q></h5>` : '<h6>Only the image to work with here sorry... 😓</h6>';
             promptInput.value = '';
             inputPromptCharCount.innerText = `${MAX_PROMPT_LENGTH}/${MAX_PROMPT_LENGTH} characters left`;
 
+            loadingScreen.classList.add('hidden');
             promptScreen.classList.remove('hidden');
         })
         .catch(renderError);
-}
+};
 
 interestsForm.addEventListener('submit',(event) => {
     event.preventDefault();
 
-    interestsForm.classList.add('hidden');
-
     const interestData = new FormData(event.target);
     _INTEREST = interestData.get('interest');
 
+    interestsForm.classList.add('hidden');
     getPromptImage();
 });
 
@@ -147,4 +147,25 @@ promptInput.addEventListener('input', () => {
 promptSkipButton.addEventListener('click', () => {
     promptScreen.classList.add('hidden');
     getPromptImage();
+});
+
+promptForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const prompt = promptInput.value;
+
+    if (!prompt) {
+        return;
+    }
+
+    const createPrompt = httpsCallable(functions, 'createPrompt');
+    createPrompt({
+        imageId: _IMAGE.id,
+        interest: _INTEREST,
+        prompt })
+        .then(() => {
+            promptScreen.classList.add('hidden');
+            getPromptImage();
+        })
+        .catch(renderError);
 });

@@ -4,15 +4,14 @@ const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
 const fetch = require("node-fetch");
 
-const { INTERESTS, MAX_LEFT_HAND_LIST_SIZE } = require("./constants");
+const {
+  MAX_LEFT_HAND_LIST_SIZE,
+  NEXT_PAGE_COLLECTION,
+  getPromptCollectionName,
+  getImageCollectionName,
+  validateRequest,
+} = require("./constants");
 
-/**
- * Creates or updates the next page document for a given interest.
- * @param {FirebaseFirestore.Firestore} db - Firestore database instance.
- * @param {string} interest - The interest category.
- * @param {number} [newNextPage=0] - The new next page number.
- * @returns {Promise<Object>} - The next page document data.
- */
 const createOrUpdateNextPageDocument = async (
   db,
   interest,
@@ -21,7 +20,7 @@ const createOrUpdateNextPageDocument = async (
   const nextPageDoc = { nextPage: newNextPage };
 
   await db.runTransaction(async (transaction) => {
-    const nextPageDocRef = db.collection("NextPage").doc(interest);
+    const nextPageDocRef = db.collection(NEXT_PAGE_COLLECTION).doc(interest);
 
     const currentNextPageDoc = await transaction.get(nextPageDocRef);
     if (currentNextPageDoc.exists && newNextPage === 0) {
@@ -34,19 +33,13 @@ const createOrUpdateNextPageDocument = async (
   return nextPageDoc;
 };
 
-/**
- * Calls the News API to fetch news articles based on the given interest and updates the next page document.
- * @param {FirebaseFirestore.Firestore} db - Firestore database instance.
- * @param {string} interest - The interest category for fetching news articles.
- * @param {number} attempts - The current attempt number for fetching news articles.
- * @returns {Promise<Array<Object>>} - Array of news articles fetched from the News API.
- * @throws {HttpsError} - Throws an error if fetching news data fails.
- */
-const callNewsAPI = async (db, interest, attempts) => {
+const callNewsAPI = async (db, interest, attempts, nextPage) => {
   const newsQueryString = `https://newsdata.io/api/1/archive?apikey=${process.env.NEWSDATA_API_KEY}&category=${interest}&language=en&image=1`;
 
   try {
-    const nextPageDoc = await createOrUpdateNextPageDocument(db, interest);
+    const nextPageDoc = nextPage
+      ? { nextPage }
+      : await createOrUpdateNextPageDocument(db, interest);
 
     const newsResponse = await fetch(
       newsQueryString +
@@ -56,7 +49,7 @@ const callNewsAPI = async (db, interest, attempts) => {
 
     await createOrUpdateNextPageDocument(db, interest, newsJson.nextPage);
 
-    return newsJson.results;
+    return newsJson;
   } catch (error) {
     logger.error(
       `Error fetching news data (attempt #${attempts}): ${newsQueryString}`,
@@ -70,51 +63,52 @@ const callNewsAPI = async (db, interest, attempts) => {
   }
 };
 
-/**
- * Fetches images from the News API and saves them to the specified Firestore collection.
- * @param {FirebaseFirestore.Firestore} db - Firestore database instance.
- * @param {FirebaseFirestore.CollectionReference} imageCollection - Firestore collection reference for the images.
- * @returns {Promise<Array<Object>>} - Array of image documents fetched from the News API.
- */
-const createImagesFromNewsAPI = async (db, imageCollection) => {
+const createImagesFromNewsAPI = async (db, interest) => {
+  const imageCollection = db.collection(getImageCollectionName(interest));
   const imagesToReturnFrom = [];
 
   for (
-    let attempts = 0, newsResults;
+    let attempts = 0, newsResultsObj = { nextPage: 0, results: [] };
     attempts < 5 && imagesToReturnFrom.length === 0;
     attempts++
   ) {
-    newsResults = await callNewsAPI(db, imageCollection.id, attempts);
+    newsResultsObj = await callNewsAPI(
+      db,
+      interest,
+      attempts,
+      newsResultsObj.nextPage
+    );
 
     // Check for existing documents in batches of size MAX_LEFT_HAND_LIST_SIZE
     const articlesWithExistingDocuments = [];
-    const articleIds = newsResults.map((article) => article.article_id);
+    const articleIds = newsResultsObj.results.map(
+      (article) => article.article_id
+    );
 
     for (
       let counter = 0;
       counter < articleIds.length;
       counter += MAX_LEFT_HAND_LIST_SIZE
     ) {
-      const articleIdsSlice = articleIds.slice(
-        counter,
-        counter + MAX_LEFT_HAND_LIST_SIZE
-      );
       const articlesWithExistingDocumentsSlice = await imageCollection
-        .where("id", "in", articleIdsSlice)
+        .where(
+          "articleId",
+          "in",
+          articleIds.slice(counter, counter + MAX_LEFT_HAND_LIST_SIZE)
+        )
         .get();
 
-      if (!articlesWithExistingDocumentsSlice.empty) {
-        articlesWithExistingDocuments.push(
-          ...articlesWithExistingDocumentsSlice.docs
-        );
-      }
+      articlesWithExistingDocuments.push(
+        ...articlesWithExistingDocumentsSlice.docs.map(
+          (doc) => doc.data().articleId
+        )
+      );
     }
 
-    // Filter out articles that already have documents
-    const articlesToSave = newsResults.filter(
+    const articlesToSave = newsResultsObj.results.filter(
       (article) =>
         !articlesWithExistingDocuments.some(
-          (doc) => doc.id === article.article_id
+          (articleId) => articleId === article.article_id
         )
     );
 
@@ -122,17 +116,21 @@ const createImagesFromNewsAPI = async (db, imageCollection) => {
       const batch = db.batch();
 
       articlesToSave.forEach((article) => {
-        const imageRef = imageCollection.doc(article.article_id);
-        const imageDocument = {
-          id: article.article_id,
+        const imageRef = imageCollection.doc();
+        const imageData = {
+          createdAt: FieldValue.serverTimestamp(),
           description: article.description,
+          articleId: article.article_id,
           imageUrl: article.image_url,
           link: article.link,
-          createdAt: FieldValue.serverTimestamp(),
         };
 
-        batch.set(imageRef, imageDocument, { merge: true });
-        imagesToReturnFrom.push(imageDocument);
+        batch.set(imageRef, imageData, { merge: true });
+        imagesToReturnFrom.push({
+          id: imageRef.id,
+          imageUrl: imageData.imageUrl,
+          description: imageData.description,
+        });
       });
 
       await batch.commit();
@@ -142,83 +140,65 @@ const createImagesFromNewsAPI = async (db, imageCollection) => {
   return imagesToReturnFrom;
 };
 
-/**
- * Retrieves images from the specified collection that do not have a record for the user in the 'humans' sub-collection.
- * @param {FirebaseFirestore.Firestore} db - Firestore database instance.
- * @param {FirebaseFirestore.CollectionReference} imageCollection - Firestore collection reference for the images.
- * @param {string} uid - User ID to filter out images the user has interacted with.
- * @returns {Promise<Array<Object>>} - Array of image documents that the user has not interacted with.
- */
-const retrieveImagesWithoutUserInput = async (db, imageCollection, uid) => {
+const retrieveImagesWithoutUserInput = async (db, interest, uid) => {
+  const imageCollection = db.collection(getImageCollectionName(interest));
   const allImagesSnapshot = await imageCollection.get();
-  let retrievedImages;
+  let retrievedImages = allImagesSnapshot.docs;
 
-  // Fetch 'humans' sub-collections which contain a document with the user's ID
-  const humansWithUserInputSnapshot = await db
-    .collectionGroup("humans")
-    .where("id", "==", uid)
-    .get();
+  if (retrievedImages.length > 0) {
+    const userPromptsSnapshot = await db
+      .collection(getPromptCollectionName(interest))
+      .where("uid", "==", uid)
+      .get();
 
-  if (!humansWithUserInputSnapshot.empty) {
-    // Create a set of image document IDs the user has already interacted with
-    const imagesWithUserInputSet = new Set(
-      humansWithUserInputSnapshot.docs.map((doc) => doc.ref.parent.parent.id)
-    );
+    if (!userPromptsSnapshot.empty) {
+      // Create a set of image document IDs the user has already interacted with
+      const imagesWithUserInputSet = new Set(
+        userPromptsSnapshot.docs.map((doc) => doc.id)
+      );
 
-    // Filter out images that the user has already interacted with
-    retrievedImages = allImagesSnapshot.docs
-      .filter((image) => !imagesWithUserInputSet.has(image.id))
-      .map((doc) => doc.data());
-  } else {
-    // If no interactions are found, return all saved images
-    retrievedImages = allImagesSnapshot.docs.map((doc) => doc.data());
+      // Filter out images that the user has already interacted with
+      retrievedImages = retrievedImages.filter(
+        (image) => !imagesWithUserInputSet.has(image.id)
+      );
+    }
   }
 
   return retrievedImages;
 };
 
-/**
- * Cloud Function to get an image based on user interest.
- * @param {Object} request - The request object containing data and auth information.
- * @returns {Promise<Object>} - The image document data.
- * @throws {HttpsError} - Throws an error if the user is not authenticated or if an invalid interest is provided.
- */
 exports.getImage = async (request) => {
-  const { interest } = request.data;
-  const { uid } = request.auth;
-
-  if (!uid) {
-    throw new HttpsError(
-      "unauthenticated",
-      "You must be logged in to call this function"
-    );
-  }
-
-  if (!INTERESTS.includes(interest)) {
-    throw new HttpsError(
-      "invalid-argument",
-      "Invalid interest provided",
-      interest
-    );
-  }
+  const { uid, data } = validateRequest(request);
+  const { interest } = data;
 
   const db = getFirestore();
-  const imageCollection = db.collection(interest);
+  let imageToReturn, randomIndex;
 
-  let imagesToReturnFrom = await retrieveImagesWithoutUserInput(
+  const imagesWithoutUserInput = await retrieveImagesWithoutUserInput(
     db,
-    imageCollection,
+    interest,
     uid
   );
 
-  if (imagesToReturnFrom.length === 0) {
-    imagesToReturnFrom = await createImagesFromNewsAPI(db, imageCollection);
+  if (imagesWithoutUserInput.length > 0) {
+    randomIndex = Math.floor(Math.random() * imagesWithoutUserInput.length);
+    const imageObject = imagesWithoutUserInput[randomIndex].data();
+
+    imageToReturn = {
+      id: imagesWithoutUserInput[randomIndex].id,
+      imageUrl: imageObject.imageUrl,
+      description: imageObject.description,
+    };
   }
 
-  if (imagesToReturnFrom.length === 0) {
-    throw new HttpsError("not-found", "No images found - try again later");
-  } else {
-    const randomIndex = Math.floor(Math.random() * imagesToReturnFrom.length);
-    return imagesToReturnFrom[randomIndex];
+  if (!imageToReturn) {
+    const imagesToReturnFrom = await createImagesFromNewsAPI(db, interest);
+
+    if (imagesToReturnFrom.length > 0) {
+      randomIndex = Math.floor(Math.random() * imagesToReturnFrom.length);
+      imageToReturn = imagesToReturnFrom[randomIndex];
+    }
   }
+
+  return { result: imageToReturn };
 };

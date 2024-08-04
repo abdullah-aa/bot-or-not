@@ -3,12 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>The Circle Bot UI</title>
+    <title>BotOrNot</title>
     <link rel="stylesheet" href="css/style.css" />
-    <meta name="The Circle Bot UI" />
+    <meta name="Bot Or Not" />
 
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon.png" sizes="any" />
     <link rel="apple-touch-icon" href="icon.png" />
 
     <link rel="manifest" href="site.webmanifest" />
@@ -16,25 +15,50 @@
   </head>
 
   <body>
-    <h3 class="flexCenter">Bot -OR- Not</h3>
+    <header class="marginMdBottom">
+      <img src="img/botOrNotBanner.jpg" class="centralImage">
+    </header>
+
+    <form id="welcomeForm" class="flexColCenter">
+      <div class="centralLogoFrame">
+        <img src="img/botOrNotLogo.png" class="centralLogoImage">
+      </div>
+      <div  class="section flexColCenter">
+        <h4>Welcome to Bot-Or-Not!</h4>
+        <p>
+          Bot-Or-Not is a little game to test your ability to see through Bot Speak.
+        </p>
+        <p>
+          Write something about images from the news, and see if other players think it was written by you ...or Gemini's chatbot.
+        </p>
+        <button type="submit" class="marginSmTopAndBottom">
+          <strong>Let's get started!</strong>
+        </button>
+      </div>
+    </form>
 
     <form id="authForm" class="flexColCenter hidden">
-      <div class="section flexCenter xSmallFlexGap">
-        <div class="quarterSection flexColEnd">
+      <div class="flexCenter xSmallFlexGap marginMdBottom">
+        <div class="flexColEnd">
           <label class="marginSmTopAndBottom" for="email">Email:</label>
           <label class="marginSmTopAndBottom" for="password">Password:</label>
         </div>
-        <div class="halfSection flexColStart">
+        <div class="flexColStart">
           <input class="marginSmTopAndBottom" type="text" id="email" name="email" />
           <input class="marginSmTopAndBottom" type="password" id="password" name="password" />
         </div>
       </div>
-      <button id="authSubmitButton" type="submit" class="marginSmTopAndBottom">Submit</button>
+      <div class="flexSpaceEvenly">
+        <div class="flexCol">
+          <strong>Registered already?</strong>
+          <button id="loginButton" name="loginButton" type="submit" class="marginSmTopAndBottom">Log In</button>
+        </div>
+        <div class="flexCol">
+          <strong>First time here?</strong>
+          <button id="signupButton" name="signupButton" type="submit" class="marginSmTopAndBottom">Sign Up</button>
+        </div>
+      </div>
     </form>
-    <div id="authButtons" class="flexColCenter">
-      <button id="signupButton" class="marginSmTopAndBottom">Sign Up</button>
-      <button id="loginButton" class="marginSmTopAndBottom">Log In</button>
-    </div>
 
     <form id="interestsForm" class="flexColCenter hidden">
       <fieldset>
@@ -67,14 +91,28 @@
       <button id="interestsSubmitButton" type="submit" class="marginSm">Submit</button>
     </form>
 
+    <form id="choiceForm" class="flexColCenter hidden">
+      <h3>What do you want to do?</h3>
+      <div class="flexSpaceEvenly">
+        <div class="flexColCenter">
+          <strong>Leave a thought!</strong>
+          <button id="takeToPrompt" name="takeToPrompt" style="background-image: url('img/enterPrompt.jpg')" class="imageButton"></button>
+        </div>
+        <div class="flexColCenter">
+          <strong>Guess who...</strong>
+          <button id="takeToGuess" name="takeToGuess" style="background-image: url('img/enterGuess.jpg')" class="imageButton"></button>
+        </div>
+      </div>
+    </form>
+
     <div id="loadingScreen" class="flexColCenter hidden">
-      <img src="img/runner.gif" alt="Stick man running endlessly" class="imageElement" />
+      <img src="img/runner.gif" alt="Stick man running endlessly" class="centralImage" />
       <h5 id="loadingHeader">Loading Image...</h5>
     </div>
 
     <div id="promptScreen" class="flexColCenter hidden">
       <div class="section">
-        <img id="promptImage" class="imageElement" />
+        <img id="promptImage" class="centralImage" />
         <div id="promptText" class="marginSmTopAndBottom"></div>
       </div>
       <form id="promptForm" class="flexColCenter">
@@ -87,10 +125,26 @@
             placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
           <span id="inputPromptCharCount"></span>
           <div class="flexSpaceBetween">
-            <button id="promptSkipButton" type="button" class="marginSm">Get Another</button>
-            <button id="promptButton" type="submit" class="marginSm">Submit</button>
+            <button id="promptSkipButton" name="promptSkipButton" type="submit" class="marginSm">Get Another</button>
+            <button id="promptButton" name="promptButton" type="submit" class="marginSm">Submit</button>
           </div>
         </div>
+      </form>
+    </div>
+
+    <div id="guessScreen" class="flexColCenter hidden">
+      <div class="section">
+        <img id="guessImage" class="centralImage" />
+        <h6 id="guessPrompt" class="marginSmTopAndBottom"></h6>
+        <div id="guessText" class="marginSmTopAndBottom"></div>
+      </div>
+      <form id="guessForm" class="flexColCenter">
+        <h3>Was it a human or a bot? 🤖</h3>
+        <div class="flexSpaceEvenly">
+          <button id="guessHumanButton" name="guessHumanButton" type="submit" style="background-image: url('img/isNot.jpg')" class="imageButton">Human</button>
+          <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot.jpg')" class="imageButton">Bot</button>
+        </div>
+        <button id="guessSkipButton" name="guessSkipButton" type="button" class="marginSm">Skip</button>
       </form>
     </div>
 
@@ -98,6 +152,7 @@
       <p id="errorCode"></p>
       <p id="errorMessage"></p>
     </div>
+    <button id="resetButton">Reset</button>
     <script src="js/app.js"></script>
   </body>
 </html>

@@ -62,15 +62,6 @@ video {
   vertical-align: middle;
 }
 
-/*
- * Remove default fieldset styles.
- */
-
-fieldset {
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
 
 /* ==========================================================================
    Author's custom styles
@@ -270,9 +261,17 @@ fieldset {
   margin-bottom: 1rem;
 }
 
-marginXsTopAndBottom {
+.marginXsTopAndBottom {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.marginMdBottom {
+  margin-bottom: 1.5rem;
+}
+
+.marginSmBottom {
+  margin-bottom: 1rem;
 }
 
 .flexSpaceBetween {
@@ -297,6 +296,11 @@ marginXsTopAndBottom {
   align-items: flex-end;
 }
 
+.flexCol {
+  display: flex;
+  flex-direction: column;
+}
+
 .flexColCenter {
   display: flex;
   flex-direction: column;
@@ -309,9 +313,34 @@ marginXsTopAndBottom {
   align-items: center;
 }
 
-.imageElement {
+.centralLogoFrame {
+  width: 250px; /* Adjust the size as needed */
+  height: 250px;
+  border-radius: 50%; /* Creates the circular shape */
+  overflow: hidden; /* Hides any part of the image that overflows the circle */
+}
+
+.centralLogoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the entire circle */
+}
+
+.centralImage {
   width: 100%;
   max-height: 25rem;
+}
+
+.flexSpaceEvenly {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+.imageButton {
+  width: 10rem;
+  height: 10rem;
+  background-size: cover;
 }
 
 legend {
@@ -325,4 +354,8 @@ textarea {
   width: 20rem;
   height: 5rem;
   resize: none;
+}
+
+p {
+  text-align: center;
 }

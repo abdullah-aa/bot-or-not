@@ -15,157 +15,218 @@ const firebaseConfig = {
   appId: "1:195354824452:web:f087178204f04d785a8a51",
 };
 
-const STATE_MAP = {
-  LOGGED_OUT: 'loggedOut',
-  LOGGED_IN: 'loggedIn',
-  SIGNUP: 'signup',
-  LOGIN: 'login',
-};
-
 const MAX_PROMPT_LENGTH = 150;
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-const email = document.getElementById('email');
-const password = document.getElementById('password');
+const welcomeForm = document.getElementById("welcomeForm");
+const authForm = document.getElementById("authForm");
 
-const authForm = document.getElementById('authForm');
-const authSubmitButton = document.getElementById('authSubmitButton');
+const loadingScreen = document.getElementById("loadingScreen");
 
-const signupButton = document.getElementById('signupButton');
-const loginButton = document.getElementById('loginButton');
-const authButtons = document.getElementById('authButtons');
+const interestsForm = document.getElementById("interestsForm");
+const choiceForm = document.getElementById("choiceForm");
 
-const interestsForm = document.getElementById('interestsForm');
+const promptScreen = document.getElementById("promptScreen");
+const promptImage = document.getElementById("promptImage");
+const promptText = document.getElementById("promptText");
 
-const loadingScreen = document.getElementById('loadingScreen');
+const promptForm = document.getElementById("promptForm");
+const promptInput = document.getElementById("promptInput");
+const inputPromptCharCount = document.getElementById("inputPromptCharCount");
 
-const promptScreen = document.getElementById('promptScreen');
-const promptImage = document.getElementById('promptImage');
-const promptText = document.getElementById('promptText');
+const guessScreen = document.getElementById("guessScreen");
+const guessImage = document.getElementById("guessImage");
+const guessPrompt = document.getElementById("guessPrompt");
+const guessText = document.getElementById("guessText");
+const guessForm = document.getElementById("guessForm");
 
-const promptForm = document.getElementById('promptForm');
-const promptInput = document.getElementById('promptInput');
-const inputPromptCharCount = document.getElementById('inputPromptCharCount');
-const promptSkipButton = document.getElementById('promptSkipButton');
+const errorDiv = document.getElementById("errorDiv");
+const errorCode = document.getElementById("errorCode");
+const errorMessage = document.getElementById("errorMessage");
 
-const errorDiv = document.getElementById('errorDiv');
-const errorCode = document.getElementById('errorCode');
-const errorMessage = document.getElementById('errorMessage');
+const resetButton = document.getElementById("resetButton");
 
-let _USER, _AUTH_MODE, _INTEREST, _IMAGE;
+let _USER, _INTEREST, _RESPONSE;
+
+// Helpers
 
 const renderError = (error = null) => {
-    if (error) {
-        errorDiv.classList.remove('hidden');
-        errorCode.innerText = error.code;
-        errorMessage.innerText = error.message;
-    } else {
-        errorDiv.classList.add('hidden');
-        errorCode.innerText = '';
-        errorMessage.innerText = '';
-    }
+  if (error) {
+    errorDiv.classList.remove("hidden");
+    errorCode.innerText = error.code;
+    errorMessage.innerText = error.message;
+  } else {
+    errorDiv.classList.add("hidden");
+    errorCode.innerText = "";
+    errorMessage.innerText = "";
+  }
 };
 
-signupButton.addEventListener('click', () => {
-  loginButton.classList.remove('hidden');
-  signupButton.classList.add('hidden');
-  authForm.classList.remove('hidden');
-  authSubmitButton.innerText = 'Create Account';
-  _AUTH_MODE = STATE_MAP.SIGNUP;
+const updateCharCount = () => {
+  const charCount = MAX_PROMPT_LENGTH - promptInput.value.length;
+  inputPromptCharCount.innerText = `${charCount}/${MAX_PROMPT_LENGTH} character${
+    charCount > 1 ? "" : "s"
+  } left`;
+};
+
+const getPromptImage = () => {
+  promptScreen.classList.add("hidden");
+  loadingScreen.classList.remove("hidden");
+
+  const getImage = httpsCallable(functions, "getImage");
+  getImage({ interest: _INTEREST })
+    .then((response) => {
+      _RESPONSE = response.data.result;
+
+      promptImage.src = _RESPONSE.imageUrl;
+      promptText.innerHTML = _RESPONSE.description
+        ? `<h5><q>${_RESPONSE.description.replace("[...]", "")}</q></h5>`
+        : "<h6>No description available, sorry... 😓</h6>";
+      promptInput.value = "";
+      updateCharCount();
+
+      loadingScreen.classList.add("hidden");
+      promptScreen.classList.remove("hidden");
+    })
+    .catch(renderError);
+};
+
+const getChallenge = () => {
+  guessScreen.classList.add("hidden");
+  loadingScreen.classList.remove("hidden");
+
+  const getChallenge = httpsCallable(functions, "getChallenge");
+  getChallenge({ interest: _INTEREST })
+    .then((response) => {
+      _RESPONSE = response.data.result;
+
+      guessImage.src = _RESPONSE.imageUrl;
+      guessPrompt.innerHTML = `Here's what was said about this image: <h5><q>${_RESPONSE.prompt}</q></h5>`;
+      guessText.innerHTML = _RESPONSE.description
+        ? `written after reading this <h5><q>${_RESPONSE.description.replace(
+            "[...]",
+            ""
+          )}</q></h5>`
+        : "<h6>No context was provided for this image... 😓</h6>";
+
+      loadingScreen.classList.add("hidden");
+      guessScreen.classList.remove("hidden");
+    })
+    .catch(renderError);
+};
+
+// Form Listeners
+
+resetButton.addEventListener("click", () => {
+  const reset = httpsCallable(functions, "reset");
+  reset()
+    .then(() => {
+      renderError();
+      window.location.reload();
+    })
+    .catch(renderError);
 });
 
-loginButton.addEventListener('click', () => {
-  loginButton.classList.add('hidden');
-  signupButton.classList.remove('hidden');
-  authForm.classList.remove('hidden');
-  authSubmitButton.innerText = 'Login';
-  _AUTH_MODE = STATE_MAP.LOGIN;
-});
-
-authForm.addEventListener('submit', (event) => {
+welcomeForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const showInterestSelection = (userCredential) => {
-    _USER = userCredential.user;
-    _AUTH_MODE = STATE_MAP.LOGGED_IN;
+  welcomeForm.classList.add("hidden");
+  authForm.classList.remove("hidden");
+});
 
-    authButtons.classList.add('hidden');
-    authForm.classList.add('hidden');
-    renderError();
+authForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-    interestsForm.classList.remove('hidden');
-  };
+  const authData = new FormData(event.target);
+  let authPromise;
 
-  if (_AUTH_MODE === 'signup') {
-    createUserWithEmailAndPassword(auth, email.value, password.value)
-      .then(showInterestSelection)
-      .catch(renderError);
-  } else {
-    signInWithEmailAndPassword(auth, email.value, password.value)
-      .then(showInterestSelection)
-      .catch(renderError);
+  switch (event.submitter.name) {
+    case "signupButton":
+      authPromise = createUserWithEmailAndPassword(
+        auth,
+        authData.get("email"),
+        authData.get("password")
+      );
+      break;
+    case "loginButton":
+      authPromise = signInWithEmailAndPassword(
+        auth,
+        authData.get("email"),
+        authData.get("password")
+      );
+      break;
+  }
+
+  authPromise
+    .then((userCredential) => {
+      _USER = userCredential.user;
+
+      renderError();
+
+      authForm.classList.add("hidden");
+      interestsForm.classList.remove("hidden");
+    })
+    .catch(renderError);
+});
+
+interestsForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const interestData = new FormData(event.target);
+  _INTEREST = interestData.get("interest");
+
+  interestsForm.classList.add("hidden");
+  choiceForm.classList.remove("hidden");
+});
+
+choiceForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  choiceForm.classList.add("hidden");
+
+  switch (event.submitter.name) {
+    case "takeToPrompt":
+      getPromptImage();
+      break;
+    case "takeToGuess":
+      getChallenge();
+      break;
   }
 });
 
-const getPromptImage = () => {
-    loadingScreen.classList.remove('hidden');
+promptForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-    const getImage = httpsCallable(functions, 'getImage');
-    getImage({ interest: _INTEREST })
-        .then((result) => {
-            _IMAGE = result.data;
+  const promptData = new FormData(event.target);
 
-            promptImage.src = _IMAGE.imageUrl;
-            promptText.innerHTML = _IMAGE.description ? `Here's what this image is about: <h5><q>${_IMAGE.description.replace('[...]', '')}</q></h5>` : '<h6>Only the image to work with here sorry... 😓</h6>';
-            promptInput.value = '';
-            inputPromptCharCount.innerText = `${MAX_PROMPT_LENGTH}/${MAX_PROMPT_LENGTH} characters left`;
+  switch (event.submitter.name) {
+    case "promptSkipButton":
+      getPromptImage();
+      break;
+    case "promptButton":
+      const prompt = promptData.get("promptInput");
 
-            loadingScreen.classList.add('hidden');
-            promptScreen.classList.remove('hidden');
-        })
-        .catch(renderError);
-};
-
-interestsForm.addEventListener('submit',(event) => {
-    event.preventDefault();
-
-    const interestData = new FormData(event.target);
-    _INTEREST = interestData.get('interest');
-
-    interestsForm.classList.add('hidden');
-    getPromptImage();
-});
-
-promptInput.addEventListener('input', () => {
-    const charCount = promptInput.value.length;
-    inputPromptCharCount.innerText = `${MAX_PROMPT_LENGTH - charCount}/${MAX_PROMPT_LENGTH} characters left`;
-});
-
-promptSkipButton.addEventListener('click', () => {
-    promptScreen.classList.add('hidden');
-    getPromptImage();
-});
-
-promptForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const prompt = promptInput.value;
-
-    if (!prompt) {
+      if (!prompt) {
         return;
-    }
+      }
 
-    const createPrompt = httpsCallable(functions, 'createPrompt');
-    createPrompt({
-        imageId: _IMAGE.id,
+      const createPrompt = httpsCallable(functions, "createPrompt");
+      createPrompt({
+        imageId: _RESPONSE.id,
         interest: _INTEREST,
-        prompt })
-        .then(() => {
-            promptScreen.classList.add('hidden');
-            getPromptImage();
-        })
+        prompt,
+      })
+        .then(getPromptImage)
         .catch(renderError);
+      break;
+  }
+});
+
+promptInput.addEventListener("input", updateCharCount);
+
+guessForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 });

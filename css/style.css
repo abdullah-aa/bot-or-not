@@ -249,11 +249,11 @@ video {
 }
 
 .xSmallFlexGap {
-    gap: 0.25rem;
+  gap: 0.25rem;
 }
 
 .smallFlexGap {
-    gap: 0.5rem;
+  gap: 0.5rem;
 }
 
 .marginSmTopAndBottom {

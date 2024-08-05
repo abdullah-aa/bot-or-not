@@ -29,7 +29,7 @@
           Bot-Or-Not is a little game to test your ability to see through Bot Speak.
         </p>
         <p>
-          Write something about images from the news, and see if other players think it was written by you ...or Gemini's chatbot.
+          Write something about images from the news, and see if other players think it was written by you ...or a bot 🤖
         </p>
         <button type="submit" class="marginSmTopAndBottom">
           <strong>Let's get started!</strong>
@@ -95,11 +95,11 @@
       <h3>What do you want to do?</h3>
       <div class="flexSpaceEvenly">
         <div class="flexColCenter">
-          <strong>Leave a thought!</strong>
+          <strong>Say Something!</strong>
           <button id="takeToPrompt" name="takeToPrompt" style="background-image: url('img/enterPrompt.jpg')" class="imageButton"></button>
         </div>
         <div class="flexColCenter">
-          <strong>Guess who...</strong>
+          <strong>Who was it?</strong>
           <button id="takeToGuess" name="takeToGuess" style="background-image: url('img/enterGuess.jpg')" class="imageButton"></button>
         </div>
       </div>
@@ -110,43 +110,37 @@
       <h5 id="loadingHeader">Loading Image...</h5>
     </div>
 
-    <div id="promptScreen" class="flexColCenter hidden">
+    <form id="promptForm" class="flexColCenter smallFlexGap hidden">
       <div class="section">
         <img id="promptImage" class="centralImage" />
         <div id="promptText" class="marginSmTopAndBottom"></div>
       </div>
-      <form id="promptForm" class="flexColCenter">
-        <div class="flexColCenter smallFlexGap">
-          <label for="promptInput">Say something about this image!</label>
-          <textarea
-            id="promptInput"
-            name="promptInput"
-            maxlength="150"
-            placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
-          <span id="inputPromptCharCount"></span>
-          <div class="flexSpaceBetween">
-            <button id="promptSkipButton" name="promptSkipButton" type="submit" class="marginSm">Get Another</button>
-            <button id="promptButton" name="promptButton" type="submit" class="marginSm">Submit</button>
-          </div>
-        </div>
-      </form>
-    </div>
+      <label for="promptInput">Say something about this image!</label>
+      <textarea
+        id="promptInput"
+        name="promptInput"
+        maxlength="150"
+        placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
+      <span id="inputPromptCharCount"></span>
+      <div class="flexSpaceBetween">
+        <button id="promptSkipButton" name="promptSkipButton" type="submit" class="marginSm">Get Another</button>
+        <button id="promptButton" name="promptButton" type="submit" class="marginSm">Submit</button>
+      </div>
+    </form>
 
-    <div id="guessScreen" class="flexColCenter hidden">
+    <form id="guessForm" class="flexColCenter hidden">
+      <h4 class="marginSmTopAndBottom"><q id="guessPrompt"></q></h4>
       <div class="section">
         <img id="guessImage" class="centralImage" />
-        <h6 id="guessPrompt" class="marginSmTopAndBottom"></h6>
         <div id="guessText" class="marginSmTopAndBottom"></div>
       </div>
-      <form id="guessForm" class="flexColCenter">
-        <h3>Was it a human or a bot? 🤖</h3>
-        <div class="flexSpaceEvenly">
-          <button id="guessHumanButton" name="guessHumanButton" type="submit" style="background-image: url('img/isNot.jpg')" class="imageButton">Human</button>
-          <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot.jpg')" class="imageButton">Bot</button>
-        </div>
-        <button id="guessSkipButton" name="guessSkipButton" type="button" class="marginSm">Skip</button>
-      </form>
-    </div>
+      <h3>Was it a human or a bot? 🤖</h3>
+      <div class="flexSpaceEvenly">
+        <button id="guessHumanButton" name="guessHumanButton" type="submit" style="background-image: url('img/isNot.jpg')" class="imageButton"></button>
+        <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot.jpg')" class="imageButton"></button>
+      </div>
+      <button id="guessSkipButton" name="guessSkipButton" type="button" class="marginSm">Skip</button>
+    </form>
 
     <div id="errorDiv" class="hidden">
       <p id="errorCode"></p>

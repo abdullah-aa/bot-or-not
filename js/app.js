@@ -29,19 +29,16 @@ const loadingScreen = document.getElementById("loadingScreen");
 const interestsForm = document.getElementById("interestsForm");
 const choiceForm = document.getElementById("choiceForm");
 
-const promptScreen = document.getElementById("promptScreen");
+const promptForm = document.getElementById("promptForm");
 const promptImage = document.getElementById("promptImage");
 const promptText = document.getElementById("promptText");
-
-const promptForm = document.getElementById("promptForm");
 const promptInput = document.getElementById("promptInput");
 const inputPromptCharCount = document.getElementById("inputPromptCharCount");
 
-const guessScreen = document.getElementById("guessScreen");
+const guessForm = document.getElementById("guessForm");
 const guessImage = document.getElementById("guessImage");
 const guessPrompt = document.getElementById("guessPrompt");
 const guessText = document.getElementById("guessText");
-const guessForm = document.getElementById("guessForm");
 
 const errorDiv = document.getElementById("errorDiv");
 const errorCode = document.getElementById("errorCode");
@@ -73,7 +70,7 @@ const updateCharCount = () => {
 };
 
 const getPromptImage = () => {
-  promptScreen.classList.add("hidden");
+  promptForm.classList.add("hidden");
   loadingScreen.classList.remove("hidden");
 
   const getImage = httpsCallable(functions, "getImage");
@@ -89,13 +86,13 @@ const getPromptImage = () => {
       updateCharCount();
 
       loadingScreen.classList.add("hidden");
-      promptScreen.classList.remove("hidden");
+      promptForm.classList.remove("hidden");
     })
     .catch(renderError);
 };
 
 const getChallenge = () => {
-  guessScreen.classList.add("hidden");
+  guessForm.classList.add("hidden");
   loadingScreen.classList.remove("hidden");
 
   const getChallenge = httpsCallable(functions, "getChallenge");
@@ -104,7 +101,7 @@ const getChallenge = () => {
       _RESPONSE = response.data.result;
 
       guessImage.src = _RESPONSE.imageUrl;
-      guessPrompt.innerHTML = `Here's what was said about this image: <h5><q>${_RESPONSE.prompt}</q></h5>`;
+      guessPrompt.innerHTML = _RESPONSE.prompt;
       guessText.innerHTML = _RESPONSE.description
         ? `written after reading this <h5><q>${_RESPONSE.description.replace(
             "[...]",
@@ -113,7 +110,7 @@ const getChallenge = () => {
         : "<h6>No context was provided for this image... 😓</h6>";
 
       loadingScreen.classList.add("hidden");
-      guessScreen.classList.remove("hidden");
+      guessForm.classList.remove("hidden");
     })
     .catch(renderError);
 };
@@ -215,7 +212,7 @@ promptForm.addEventListener("submit", (event) => {
 
       const createPrompt = httpsCallable(functions, "createPrompt");
       createPrompt({
-        imageId: _RESPONSE.id,
+        imageId: _RESPONSE.imageId,
         interest: _INTEREST,
         prompt,
       })

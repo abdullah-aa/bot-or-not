@@ -1,4 +1,9 @@
 const { HttpsError } = require("firebase-functions/v2/https");
+const fetch = require("node-fetch");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+
 const INTERESTS = ["Business", "Entertainment", "Politics", "Sports"];
 const NEXT_PAGE_COLLECTION = "NextPage";
 
@@ -33,6 +38,27 @@ const validateRequest = (request) => {
   return { uid, data: request.data };
 };
 
+const downloadFile = async (fileUrl) => {
+  const response = await fetch(fileUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${fileUrl}: ${response.statusText}`);
+  }
+
+  const tempDir = os.tmpdir();
+  const fileName = path.basename(fileUrl);
+  const filePath = path.join(tempDir, fileName);
+
+  const fileStream = fs.createWriteStream(filePath);
+  await new Promise((resolve, reject) => {
+    response.body.pipe(fileStream);
+    response.body.on("error", reject);
+    fileStream.on("finish", resolve);
+  });
+
+  return filePath;
+};
+
 module.exports = {
   IS_BOT,
   IS_NOT,
@@ -44,5 +70,6 @@ module.exports = {
   getPromptCollectionName,
   getResponseCollectionName,
 
+  downloadFile,
   validateRequest,
 };

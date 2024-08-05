@@ -1,6 +1,11 @@
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
-const { getPromptCollectionName, validateRequest } = require("./constants");
+const {
+  getPromptCollectionName,
+  validateRequest,
+  IS_BOT,
+  IS_NOT,
+} = require("./constants");
 
 exports.createPrompt = async (request) => {
   const { uid, data } = validateRequest(request);
@@ -10,9 +15,11 @@ exports.createPrompt = async (request) => {
 
   await db.collection(getPromptCollectionName(interest)).add({
     createdAt: FieldValue.serverTimestamp(),
-    uid,
     imageId,
+    [IS_BOT]: false,
+    [IS_NOT]: true,
     prompt,
+    uid,
   });
 
   return { result: "Submitted!" };

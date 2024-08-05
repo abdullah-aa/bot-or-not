@@ -5,6 +5,9 @@ const NEXT_PAGE_COLLECTION = "NextPage";
 // https://firebase.google.com/docs/firestore/query-data/queries#limits_on_or_queries
 const MAX_LEFT_HAND_LIST_SIZE = 30;
 
+const IS_BOT = "isBot";
+const IS_NOT = "isNot";
+
 const getImageCollectionName = (interest = "Uncategorized") =>
   `${interest}_Images`;
 const getPromptCollectionName = (interest = "Uncategorized") =>
@@ -31,6 +34,8 @@ const validateRequest = (request) => {
 };
 
 module.exports = {
+  IS_BOT,
+  IS_NOT,
   INTERESTS,
   MAX_LEFT_HAND_LIST_SIZE,
   NEXT_PAGE_COLLECTION,

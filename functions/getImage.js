@@ -127,7 +127,7 @@ const createImagesFromNewsAPI = async (db, interest) => {
 
         batch.set(imageRef, imageData, { merge: true });
         imagesToReturnFrom.push({
-          id: imageRef.id,
+          imageId: imageRef.id,
           imageUrl: imageData.imageUrl,
           description: imageData.description,
         });
@@ -185,7 +185,7 @@ exports.getImage = async (request) => {
     const imageObject = imagesWithoutUserInput[randomIndex].data();
 
     imageToReturn = {
-      id: imagesWithoutUserInput[randomIndex].id,
+      imageId: imagesWithoutUserInput[randomIndex].id,
       imageUrl: imageObject.imageUrl,
       description: imageObject.description,
     };

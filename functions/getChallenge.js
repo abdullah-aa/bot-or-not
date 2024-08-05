@@ -44,7 +44,7 @@ exports.getChallenge = async (request) => {
     ).data();
 
     result = {
-      id: promptsWithoutUserResponses[randomIndex].id,
+      promptId: promptsWithoutUserResponses[randomIndex].id,
       prompt: promptDoc.prompt,
       imageUrl: imageDoc.imageUrl,
       description: imageDoc.description,

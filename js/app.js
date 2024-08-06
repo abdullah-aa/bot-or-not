@@ -49,17 +49,30 @@ const errorDiv = document.getElementById("errorDiv");
 const errorCode = document.getElementById("errorCode");
 const errorMessage = document.getElementById("errorMessage");
 
-const resetButton = document.getElementById("resetButton");
+// const resetButton = document.getElementById("resetButton");
 // End -- Page Elements
 
 // Helpers/Utilities -- Begin
+// resetButton.addEventListener("click", () => {
+//   const reset = httpsCallable(functions, "reset");
+//   reset()
+//     .then(() => {
+//       renderError();
+//       window.location.reload();
+//     })
+//     .catch(renderError);
+// });
+
+const hide = (element) => element.classList.add("hidden");
+const show = (element) => element.classList.remove("hidden");
+
 const renderError = (error = null) => {
   if (error) {
-    errorDiv.classList.remove("hidden");
+    show(errorDiv);
     errorCode.innerText = error.code;
     errorMessage.innerText = error.message;
   } else {
-    errorDiv.classList.add("hidden");
+    hide(errorDiv);
     errorCode.innerText = "";
     errorMessage.innerText = "";
   }
@@ -72,10 +85,7 @@ const updateCharCount = () => {
   } left`;
 };
 
-const getPromptImage = async () => {
-  promptForm.classList.add("hidden");
-  loadingScreen.classList.remove("hidden");
-
+const getImage = async () => {
   try {
     const getImage = httpsCallable(functions, "getImage");
     const response = await getImage({ interest: _INTEREST });
@@ -91,22 +101,11 @@ const getPromptImage = async () => {
     renderError(error);
   }
 
-  loadingScreen.classList.add("hidden");
-  promptForm.classList.remove("hidden");
+  hide(loadingScreen);
+  show(promptForm);
 };
 
-const getChallenge = async (lastGuessResponse) => {
-  if (lastGuessResponse && lastGuessResponse.data) {
-    if (lastGuessResponse.data.result) {
-      alert("You guessed correctly! 🎉");
-    } else {
-      alert("You guessed incorrectly! 😢");
-    }
-  }
-
-  guessForm.classList.add("hidden");
-  loadingScreen.classList.remove("hidden");
-
+const getChallenge = async () => {
   try {
     const getChallenge = httpsCallable(functions, "getChallenge");
     const response = await getChallenge({ interest: _INTEREST });
@@ -124,27 +123,17 @@ const getChallenge = async (lastGuessResponse) => {
     renderError(error);
   }
 
-  loadingScreen.classList.add("hidden");
-  guessForm.classList.remove("hidden");
+  hide(loadingScreen);
+  show(guessForm);
 };
-
-resetButton.addEventListener("click", () => {
-  const reset = httpsCallable(functions, "reset");
-  reset()
-    .then(() => {
-      renderError();
-      window.location.reload();
-    })
-    .catch(renderError);
-});
 // End -- Helpers/Utilities
 
 // Welcome Form Listeners -- Begin
 welcomeForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  welcomeForm.classList.add("hidden");
-  authForm.classList.remove("hidden");
+  hide(welcomeForm);
+  show(authForm);
 });
 // End -- Welcome Form Listeners
 
@@ -177,8 +166,8 @@ authForm.addEventListener("submit", async (event) => {
 
     renderError();
 
-    authForm.classList.add("hidden");
-    interestsForm.classList.remove("hidden");
+    hide(authForm);
+    show(interestsForm);
   } catch (error) {
     renderError(error);
   }
@@ -192,21 +181,26 @@ interestsForm.addEventListener("submit", (event) => {
   const interestData = new FormData(event.target);
   _INTEREST = interestData.get("interest");
 
-  interestsForm.classList.add("hidden");
-  choiceForm.classList.remove("hidden");
+  hide(interestsForm);
+  show(choiceForm);
 });
 
 choiceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  choiceForm.classList.add("hidden");
+  hide(choiceForm);
 
   switch (event.submitter.name) {
-    case "takeToPrompt":
-      await getPromptImage();
+    case "takeToPromptButton":
+      show(loadingScreen);
+      await getImage();
       break;
-    case "takeToGuess":
+    case "takeToGuessButton":
+      show(loadingScreen);
       await getChallenge();
+      break;
+    case "takeToInterestButton":
+      show(interestsForm);
       break;
   }
 });
@@ -218,13 +212,17 @@ promptForm.addEventListener("submit", async (event) => {
 
   const promptData = new FormData(event.target);
 
+  hide(promptForm);
+
   switch (event.submitter.name) {
     case "promptSkipButton":
-      await getPromptImage();
+      show(loadingScreen);
+      await getImage();
       break;
     case "promptButton":
-      const prompt = promptData.get("promptInput");
+      show(loadingScreen);
 
+      const prompt = promptData.get("promptInput");
       if (!prompt) {
         return;
       }
@@ -237,10 +235,14 @@ promptForm.addEventListener("submit", async (event) => {
           prompt,
         });
 
-        await getPromptImage();
+        await getImage();
       } catch (error) {
         renderError(error);
       }
+      break;
+    case "promptBackButton":
+      show(choiceForm);
+      break;
   }
 });
 
@@ -251,13 +253,17 @@ promptInput.addEventListener("input", updateCharCount);
 guessForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  let submitterName = event.submitter.name;
+  hide(guessForm);
+
+  const submitterName = event.submitter.name;
   switch (submitterName) {
     case "guessSkipButton":
+      show(loadingScreen);
       await getChallenge();
       break;
     case "guessBotButton":
     case "guessNotButton":
+      show(loadingScreen);
       try {
         const submitGuess = httpsCallable(functions, "submitGuess");
         const response = await submitGuess({
@@ -266,10 +272,22 @@ guessForm.addEventListener("submit", async (event) => {
           guess: `is${submitterName.slice(5, 8)}`,
         });
 
-        await getChallenge(response);
+        if (response && response.data) {
+          if (response.data.result) {
+            alert("You guessed correctly! 🎉");
+          } else {
+            alert("You guessed incorrectly! 😢");
+          }
+        }
+
+        await getChallenge();
       } catch (error) {
         renderError(error);
       }
+      break;
+    case "guessBackButton":
+      show(choiceForm);
+      break;
   }
 });
 // End -- Guess Form Listeners

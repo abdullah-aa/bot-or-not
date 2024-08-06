@@ -17,6 +17,11 @@ html {
   line-height: 1.4;
 }
 
+body {
+  max-width: 27rem;
+  margin: 0 auto;
+}
+
 /*
  * Remove text-shadow in selection highlight:
  * https://twitter.com/miketaylr/status/12228805301
@@ -270,6 +275,10 @@ video {
   margin-bottom: 1.5rem;
 }
 
+.marginLgBottom {
+  margin-bottom: 3rem;
+}
+
 .marginSmBottom {
   margin-bottom: 1rem;
 }
@@ -282,6 +291,11 @@ video {
 .flexCenter {
   display: flex;
   justify-content: center;
+}
+
+.flexEnd {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .flexColStart {

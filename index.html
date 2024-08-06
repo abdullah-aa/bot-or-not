@@ -93,16 +93,17 @@
 
     <form id="choiceForm" class="flexColCenter hidden">
       <h3>What do you want to do?</h3>
-      <div class="flexSpaceEvenly">
+      <div class="flexSpaceEvenly marginMdBottom">
         <div class="flexColCenter">
           <strong>Say Something!</strong>
-          <button id="takeToPrompt" name="takeToPrompt" style="background-image: url('img/enterPrompt')" class="imageButton"></button>
+          <button id="takeToPromptButton" name="takeToPromptButton" style="background-image: url('img/enterPrompt')" class="imageButton"></button>
         </div>
         <div class="flexColCenter">
           <strong>Who was it?</strong>
-          <button id="takeToGuess" name="takeToGuess" style="background-image: url('img/enterGuess')" class="imageButton"></button>
+          <button id="takeToGuessButton" name="takeToGuessButton" style="background-image: url('img/enterGuess')" class="imageButton"></button>
         </div>
       </div>
+      <button id="takeToInterestButton" name="takeToInterestButton" type="submit" class="margin">Switch Interest</button>
     </form>
 
     <div id="loadingScreen" class="flexColCenter hidden">
@@ -116,15 +117,20 @@
         <div id="promptText" class="marginSmTopAndBottom"></div>
       </div>
       <label for="promptInput">Say something about this image!</label>
-      <textarea
-        id="promptInput"
-        name="promptInput"
-        maxlength="150"
-        placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
-      <span id="inputPromptCharCount"></span>
-      <div class="flexSpaceBetween">
-        <button id="promptSkipButton" name="promptSkipButton" type="submit" class="marginSm">Get Another</button>
-        <button id="promptButton" name="promptButton" type="submit" class="marginSm">Submit</button>
+      <div class="marginLgBottom">
+        <div class="flexColCenter">
+          <textarea
+            id="promptInput"
+            name="promptInput"
+            maxlength="150"
+            placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
+          <span id="inputPromptCharCount"></span>
+        </div>
+        <button id="promptButton" name="promptButton" type="submit">Submit</button>
+      </div>
+      <div class="flexSpaceEvenly">
+        <button id="promptSkipButton" name="promptSkipButton" type="submit"><small>Skip</small></button>
+        <button id="promptBackButton" name="promptBackButton" type="submit"><small>Back To Menu</small></button>
       </div>
     </form>
 
@@ -135,18 +141,21 @@
         <div id="guessText" class="marginSmTopAndBottom"></div>
       </div>
       <h3>Was it a human or a bot? 🤖</h3>
-      <div class="flexSpaceEvenly">
-        <button id="guessNotButton" name="guessNotButton" type="submit" style="background-image: url('img/isNot.jpg')" class="imageButton"></button>
-        <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot.jpg')" class="imageButton"></button>
+      <div class="flexSpaceEvenly marginLgBottom">
+        <button id="guessNotButton" name="guessNotButton" type="submit" style="background-image: url('img/isNot')" class="imageButton"></button>
+        <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot')" class="imageButton"></button>
       </div>
-      <button id="guessSkipButton" name="guessSkipButton" type="submit" class="marginSm">Skip</button>
+      <div class="flexSpaceEvenly">
+        <button id="guessSkipButton" name="guessSkipButton" type="submit"><small>Skip</small></button>
+        <button id="guessBackButton" name="guessBackButton" type="submit"><small>Back To Menu</small></button>
+      </div>
     </form>
 
     <div id="errorDiv" class="hidden">
       <p id="errorCode"></p>
       <p id="errorMessage"></p>
     </div>
-    <button id="resetButton">Reset</button>
+<!--    <button id="resetButton">Reset</button>-->
     <script src="js/app.js"></script>
   </body>
 </html>

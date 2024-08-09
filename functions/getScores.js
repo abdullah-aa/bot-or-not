@@ -1,29 +1,28 @@
-const admin = require("firebase-admin");
-
-const { validateRequest, getResponseCollectionName } = require("./constants");
 const { getFirestore } = require("firebase-admin/firestore");
 
-exports.getScores = async (request) => {
-  const { uid, interest } = validateRequest(request);
+const {
+  INTERESTS,
+  validateRequest,
+  getResponseCollectionName,
+} = require("./constants");
 
-  const auth = admin.auth();
-  const allUsers = await auth.listUsers();
+exports.getScores = async (request) => {
+  const { uid } = validateRequest(request);
 
   const db = getFirestore();
-  const responseCollection = db.collection(getResponseCollectionName(interest));
+  const scoreResults = {};
 
-  const scoreBoard = {},
-    allUserIds = [];
-  for (const user of allUsers.users) {
-    const userUid = user.uid;
-    allUserIds.push(userUid);
-
-    const userResponsesSnapshot = await responseCollection
-      .where("uid", "==", userUid)
+  for (const interest of INTERESTS) {
+    const responseSnapshot = await db
+      .collection(getResponseCollectionName(interest))
       .get();
 
-    for (const response of userResponsesSnapshot.docs) {
-      const responseDoc = response.data();
+    const scoreBoard = {};
+    const allUserIds = [];
+    for (const response of responseSnapshot.docs) {
+      const { uid: userUid, win } = response.data();
+      allUserIds.push(userUid);
+
       if (!scoreBoard[userUid]) {
         scoreBoard[userUid] = {
           total: 0,
@@ -32,32 +31,42 @@ exports.getScores = async (request) => {
       }
 
       scoreBoard[userUid].total++;
-      if (responseDoc.win) {
+      if (win) {
         scoreBoard[userUid].wins++;
       }
     }
+
+    scoreResults[interest] = {
+      wins: scoreBoard[uid]?.wins || 0,
+      total: scoreBoard[uid]?.total || 0,
+      rate: scoreBoard[uid]
+        ? Math.floor(scoreBoard[uid].wins / scoreBoard[uid].total)
+        : 0,
+
+      mostWins: allUserIds.reduce((a, b) =>
+        scoreBoard[a]?.wins > scoreBoard[b]?.wins ? a : b
+      )?.wins,
+      winRank:
+        allUserIds
+          .sort((a, b) => scoreBoard[b]?.wins - scoreBoard[a]?.wins)
+          .findIndex((id) => id === uid) + 1,
+
+      highestRate: allUserIds.reduce((a, b) =>
+        scoreBoard[a]?.wins / scoreBoard[a]?.total >
+        scoreBoard[b]?.wins / scoreBoard[b]?.total
+          ? a
+          : b
+      ),
+      rateRank:
+        allUserIds
+          .sort(
+            (a, b) =>
+              scoreBoard[b]?.wins / scoreBoard[b]?.total -
+              scoreBoard[a]?.wins / scoreBoard[a]?.total
+          )
+          .findIndex((id) => id === uid) + 1,
+    };
   }
 
-  return {
-    wins: scoreBoard[uid].wins,
-    total: scoreBoard[uid].total,
-    rate: Math.floor(scoreBoard[uid].wins / scoreBoard[uid].total),
-
-    mostWins: allUserIds.reduce((a, b) =>
-      scoreBoard[a].wins > scoreBoard[b].wins ? a : b
-    ),
-    winRank: allUserIds.sort((a, b) => scoreBoard[b].wins - scoreBoard[a].wins),
-
-    highestRate: allUserIds.reduce((a, b) =>
-      scoreBoard[a].wins / scoreBoard[a].total >
-      scoreBoard[b].wins / scoreBoard[b].total
-        ? a
-        : b
-    ),
-    rateRank: allUserIds.sort(
-      (a, b) =>
-        scoreBoard[b].wins / scoreBoard[b].total -
-        scoreBoard[a].wins / scoreBoard[a].total
-    ),
-  };
+  return { result: scoreResults };
 };

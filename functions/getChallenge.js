@@ -33,12 +33,18 @@ const getPromptsWithoutUserResponse = async (db, interest, uid, type) => {
     (prompt) => !promptsWithUserResponses.includes(prompt.id)
   );
 
-  if (promptsWithoutUserResponses.length > 0) {
-    const promptSnapshot =
-      promptsWithoutUserResponses[
-        Math.floor(Math.random() * promptsWithoutUserResponses.length)
-      ];
+  while (!promptToReturn && promptsWithoutUserResponses.length > 0) {
+    const randomPromptIndex = Math.floor(
+      Math.random() * promptsWithoutUserResponses.length
+    );
+
+    const promptSnapshot = promptsWithoutUserResponses[randomPromptIndex];
     const promptDoc = promptSnapshot.data();
+
+    if (promptDoc.uid === uid) {
+      promptsWithoutUserResponses.splice(randomPromptIndex, 1);
+      continue;
+    }
 
     const imageDoc = (
       await db
@@ -62,14 +68,20 @@ const getNotBotPrompt = async (db, interest, uid) =>
   await getPromptsWithoutUserResponse(db, interest, uid, IS_NOT);
 
 const getBotPrompt = async (db, interest, uid) => {
-  let promptToReturn = await getPromptsWithoutUserResponse(
-    db,
-    interest,
-    uid,
-    IS_BOT
-  );
+  // 25% of the time, generate a new prompt even if there are prompts with user responses
+  const shouldGenerateNewPrompt = Math.random() > 0.75;
+  let promptToReturn;
 
-  if (!promptToReturn) {
+  if (!shouldGenerateNewPrompt) {
+    promptToReturn = await getPromptsWithoutUserResponse(
+      db,
+      interest,
+      uid,
+      IS_BOT
+    );
+  }
+
+  if (!promptToReturn || shouldGenerateNewPrompt) {
     const imageCollection = await db
       .collection(getImageCollectionName(interest))
       .get();

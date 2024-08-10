@@ -17,54 +17,48 @@ exports.getScores = async (request) => {
       .collection(getResponseCollectionName(interest))
       .get();
 
-    const scoreBoard = {};
-    const allUserIds = [];
-    for (const response of responseSnapshot.docs) {
-      const { uid: userUid, win } = response.data();
-      allUserIds.push(userUid);
+    if (responseSnapshot.empty) {
+      continue;
+    }
 
-      if (!scoreBoard[userUid]) {
-        scoreBoard[userUid] = {
+    const scoreBoard = responseSnapshot.docs.reduce((acc, doc) => {
+      const { uid: userUid, win } = doc.data();
+
+      if (!acc[userUid]) {
+        acc[userUid] = {
           total: 0,
           wins: 0,
         };
       }
 
-      scoreBoard[userUid].total++;
+      acc[userUid].total++;
       if (win) {
-        scoreBoard[userUid].wins++;
+        acc[userUid].wins++;
       }
-    }
+
+      return acc;
+    }, {});
+
+    const calculateRate = (user) => user?.wins / user?.total;
+    const usersByWins = Object.keys(scoreBoard).sort(
+      (a, b) => scoreBoard[b]?.wins - scoreBoard[a]?.wins
+    );
+    const usersByRates = Object.keys(scoreBoard).sort(
+      (a, b) => calculateRate(scoreBoard[b]) - calculateRate(scoreBoard[a])
+    );
 
     scoreResults[interest] = {
       wins: scoreBoard[uid]?.wins || 0,
       total: scoreBoard[uid]?.total || 0,
       rate: scoreBoard[uid]
-        ? Math.floor(scoreBoard[uid].wins / scoreBoard[uid].total)
+        ? Math.floor(calculateRate(scoreBoard[uid]) * 100)
         : 0,
 
-      mostWins: allUserIds.reduce((a, b) =>
-        scoreBoard[a]?.wins > scoreBoard[b]?.wins ? a : b
-      )?.wins,
-      winRank:
-        allUserIds
-          .sort((a, b) => scoreBoard[b]?.wins - scoreBoard[a]?.wins)
-          .findIndex((id) => id === uid) + 1,
+      highestWins: scoreBoard[usersByWins[0]].wins,
+      winRank: usersByWins.findIndex((id) => id === uid) + 1,
 
-      highestRate: allUserIds.reduce((a, b) =>
-        scoreBoard[a]?.wins / scoreBoard[a]?.total >
-        scoreBoard[b]?.wins / scoreBoard[b]?.total
-          ? a
-          : b
-      ),
-      rateRank:
-        allUserIds
-          .sort(
-            (a, b) =>
-              scoreBoard[b]?.wins / scoreBoard[b]?.total -
-              scoreBoard[a]?.wins / scoreBoard[a]?.total
-          )
-          .findIndex((id) => id === uid) + 1,
+      highestRate: Math.floor(calculateRate(scoreBoard[usersByRates[0]]) * 100),
+      rateRank: usersByRates.findIndex((id) => id === uid) + 1,
     };
   }
 

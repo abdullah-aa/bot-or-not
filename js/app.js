@@ -6,7 +6,6 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 
-// Constants, Variables Firebase Init -- Begin
 const firebaseConfig = {
   apiKey: "AIzaSyCGzjPbE3MCph6S-3xwPS7Pp_X7a72btr4",
   authDomain: "bot-or-not-erg237.firebaseapp.com",
@@ -21,17 +20,26 @@ const auth = getAuth(app);
 const functions = getFunctions(app);
 
 const MAX_PROMPT_LENGTH = 150;
+const INTERESTS = ["Entertainment", "Business", "Politics", "Sports"];
+const CHOICES = {
+  PROMPT: "prompt",
+  GUESS: "guess",
+  SCORE: "score",
+};
 
-let _USER, _INTEREST, _RESPONSE;
-// End -- Constants, Variables Firebase Init
+let _USER,
+  _RESPONSE,
+  _CHOICE,
+  _INTEREST = INTERESTS[0];
 
-// Page Elements -- Begin
 const welcomeForm = document.getElementById("welcomeForm");
 const authForm = document.getElementById("authForm");
 
 const loadingScreen = document.getElementById("loadingScreen");
 
 const interestsForm = document.getElementById("interestsForm");
+const interestHeader = document.getElementById("interestHeader");
+
 const choiceForm = document.getElementById("choiceForm");
 
 const promptForm = document.getElementById("promptForm");
@@ -45,14 +53,26 @@ const guessImage = document.getElementById("guessImage");
 const guessPrompt = document.getElementById("guessPrompt");
 const guessText = document.getElementById("guessText");
 
+const scoreForm = document.getElementById("scoreForm");
+const scoreTotal = document.getElementById("scoreTotal");
+const scoreWins = document.getElementById("scoreWins");
+const scoreWinRank = document.getElementById("scoreWinRank");
+const scoreHighestWins = document.getElementById("scoreHighestWins");
+const scoreRate = document.getElementById("scoreRate");
+const scoreRateRank = document.getElementById("scoreRateRank");
+const scoreHighestRate = document.getElementById("scoreHighestRate");
+
+const resultForm = document.getElementById("resultForm");
+const resultImage = document.getElementById("resultImage");
+const resultHeader = document.getElementById("resultHeader");
+const resultMessage = document.getElementById("resultMessage");
+
 const errorDiv = document.getElementById("errorDiv");
 const errorCode = document.getElementById("errorCode");
 const errorMessage = document.getElementById("errorMessage");
 
 // const resetButton = document.getElementById("resetButton");
-// End -- Page Elements
-
-// Helpers/Utilities -- Begin
+//
 // resetButton.addEventListener("click", () => {
 //   const reset = httpsCallable(functions, "reset");
 //   reset()
@@ -63,29 +83,49 @@ const errorMessage = document.getElementById("errorMessage");
 //     .catch(renderError);
 // });
 
-const hide = (element) => element.classList.add("hidden");
-const show = (element) => element.classList.remove("hidden");
+const UI_ELEMENTS = [
+  welcomeForm,
+  authForm,
+  interestsForm,
+  choiceForm,
+  promptForm,
+  guessForm,
+  scoreForm,
+  resultForm,
+  loadingScreen,
+  errorDiv,
+];
 
-const renderError = (error = null) => {
-  if (error) {
-    show(errorDiv);
-    errorCode.innerText = error.code;
-    errorMessage.innerText = error.message;
-  } else {
-    hide(errorDiv);
-    errorCode.innerText = "";
-    errorMessage.innerText = "";
+// Helpers/Utilities
+
+const show = (...elements) => {
+  for (const el of UI_ELEMENTS) {
+    if (!elements.includes(el)) {
+      el.classList.add("hidden");
+    }
   }
+
+  elements.forEach((el) => el.classList.remove("hidden"));
+};
+
+const renderError = (error) => {
+  errorCode.innerText = error.code;
+  errorMessage.innerText = error.message;
+
+  show(errorDiv);
 };
 
 const updateCharCount = () => {
   const charCount = MAX_PROMPT_LENGTH - promptInput.value.length;
+
   inputPromptCharCount.innerText = `${charCount}/${MAX_PROMPT_LENGTH} character${
     charCount > 1 ? "" : "s"
   } left`;
 };
 
 const getImage = async () => {
+  show(loadingScreen);
+
   try {
     const getImage = httpsCallable(functions, "getImage");
     const response = await getImage({ interest: _INTEREST });
@@ -93,19 +133,25 @@ const getImage = async () => {
 
     promptImage.src = _RESPONSE.imageUrl;
     promptText.innerHTML = _RESPONSE.description
-      ? `<h5><q>${_RESPONSE.description.replace("[...]", "")}</q></h5>`
-      : "<h6>No description available, sorry... 😓</h6>";
+      ? `<small class="blockDisplay">Image Description</small><strong><q>${_RESPONSE.description.replace(
+          "[...]",
+          ""
+        )}</q></strong>`
+      : "<strong>No description available, sorry... 😓</strong>";
+    promptText.scrollTop = 0;
     promptInput.value = "";
+
     updateCharCount();
   } catch (error) {
     renderError(error);
   }
 
-  hide(loadingScreen);
-  show(promptForm);
+  show(promptForm, interestsForm);
 };
 
 const getChallenge = async () => {
+  show(loadingScreen);
+
   try {
     const getChallenge = httpsCallable(functions, "getChallenge");
     const response = await getChallenge({ interest: _INTEREST });
@@ -114,30 +160,81 @@ const getChallenge = async () => {
     guessImage.src = _RESPONSE.imageUrl;
     guessPrompt.innerHTML = _RESPONSE.prompt;
     guessText.innerHTML = _RESPONSE.description
-      ? `written after reading this <h5><q>${_RESPONSE.description.replace(
+      ? `written after reading this <div class="divWithScroll"><strong><q>${_RESPONSE.description.replace(
           "[...]",
           ""
-        )}</q></h5>`
-      : "<h6>No context was provided for this image... 😓</h6>";
+        )}</q></strong></div>`
+      : "<strong>No context was provided for this image... 😓</strong>";
+    guessText.scrollTop = 0;
   } catch (error) {
     renderError(error);
   }
 
-  hide(loadingScreen);
-  show(guessForm);
+  show(guessForm, interestsForm);
 };
-// End -- Helpers/Utilities
 
-// Welcome Form Listeners -- Begin
+const populateScoreContainer = () => {
+  const scoreData = _RESPONSE[_INTEREST] || {
+    total: 0,
+    wins: 0,
+    winRank: 0,
+    highestWins: 0,
+    rate: 0,
+    rateRank: 0,
+    highestRate: 0,
+  };
+
+  scoreTotal.innerText = scoreData.total;
+  scoreWins.innerText = scoreData.wins;
+  scoreWinRank.innerText = scoreData.winRank;
+  scoreHighestWins.innerText = scoreData.highestWins;
+  scoreRate.innerText = `${scoreData.rate}%`;
+  scoreRateRank.innerText = scoreData.rateRank;
+  scoreHighestRate.innerText = `${scoreData.highestRate}%`;
+};
+
+const getScores = async () => {
+  show(loadingScreen);
+
+  try {
+    const getScores = httpsCallable(functions, "getScores");
+    const response = await getScores({ interest: _INTEREST });
+    _RESPONSE = response.data.result;
+
+    populateScoreContainer();
+  } catch (error) {
+    renderError(error);
+  }
+
+  show(scoreForm, interestsForm);
+};
+
+const setupChoice = async (choice) => {
+  const scoreFunction = choice ? getScores : populateScoreContainer;
+  _CHOICE = choice || _CHOICE;
+
+  interestHeader.innerText = _INTEREST;
+  switch (_CHOICE) {
+    case CHOICES.PROMPT:
+      await getImage();
+      break;
+    case CHOICES.GUESS:
+      await getChallenge();
+      break;
+    case CHOICES.SCORE:
+      await scoreFunction();
+      break;
+  }
+};
+
+// Form Listeners
+
 welcomeForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  hide(welcomeForm);
   show(authForm);
 });
-// End -- Welcome Form Listeners
 
-// Auth Form Listeners -- Begin
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -164,59 +261,53 @@ authForm.addEventListener("submit", async (event) => {
 
     _USER = userCredential.user;
 
-    renderError();
-
-    hide(authForm);
-    show(interestsForm);
+    show(choiceForm);
   } catch (error) {
     renderError(error);
   }
 });
-// End -- Auth Form Listeners
 
-// Interests Form Listeners -- Begin
-interestsForm.addEventListener("submit", (event) => {
+interestsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const interestData = new FormData(event.target);
-  _INTEREST = interestData.get("interest");
+  switch (event.submitter.name) {
+    case "prevInterestButton":
+      const previousIndex = INTERESTS.indexOf(_INTEREST) - 1;
+      _INTEREST =
+        INTERESTS[previousIndex >= 0 ? previousIndex : INTERESTS.length - 1];
+      break;
+    case "nextInterestButton":
+      const nextIndex = INTERESTS.indexOf(_INTEREST) + 1;
+      _INTEREST = INTERESTS[nextIndex < INTERESTS.length ? nextIndex : 0];
+      break;
+  }
 
-  hide(interestsForm);
-  show(choiceForm);
+  await setupChoice();
 });
 
 choiceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  hide(choiceForm);
-
   switch (event.submitter.name) {
     case "takeToPromptButton":
-      show(loadingScreen);
-      await getImage();
+      await setupChoice(CHOICES.PROMPT);
       break;
     case "takeToGuessButton":
-      show(loadingScreen);
-      await getChallenge();
+      await setupChoice(CHOICES.GUESS);
       break;
-    case "takeToInterestButton":
-      show(interestsForm);
+    case "takeToAllScoreButton":
+      await setupChoice(CHOICES.SCORE);
       break;
   }
 });
-// End -- Interests Form Listeners
 
-// Prompt Form Listeners -- Begin
 promptForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const promptData = new FormData(event.target);
 
-  hide(promptForm);
-
   switch (event.submitter.name) {
     case "promptSkipButton":
-      show(loadingScreen);
       await getImage();
       break;
     case "promptButton":
@@ -247,40 +338,44 @@ promptForm.addEventListener("submit", async (event) => {
 });
 
 promptInput.addEventListener("input", updateCharCount);
-// End -- Prompt Form Listeners
 
-// Guess Form Listeners -- Begin
 guessForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  hide(guessForm);
 
   const submitterName = event.submitter.name;
   switch (submitterName) {
     case "guessSkipButton":
-      show(loadingScreen);
       await getChallenge();
       break;
     case "guessBotButton":
     case "guessNotButton":
       show(loadingScreen);
+
       try {
         const submitGuess = httpsCallable(functions, "submitGuess");
+        const guessType = submitterName.slice(5, 8);
         const response = await submitGuess({
           promptId: _RESPONSE.promptId,
           interest: _INTEREST,
-          guess: `is${submitterName.slice(5, 8)}`,
+          guess: `is${guessType}`,
         });
 
-        if (response && response.data) {
-          if (response.data.result) {
-            alert("You guessed correctly! 🎉");
+        _RESPONSE = response.data.result;
+
+        if (_RESPONSE) {
+          resultMessage.innerText = "U were right! 🎉";
+          resultImage.src = "img/correctGuess";
+        } else {
+          if (guessType === "Bot") {
+            resultImage.src = "img/fooledByNot";
+            resultMessage.innerText = "That wasn't a bot! 😀";
           } else {
-            alert("You guessed incorrectly! 😢");
+            resultImage.src = "img/fooledByBot";
+            resultMessage.innerText = "You fell for a bot! 🤖";
           }
         }
 
-        await getChallenge();
+        show(resultForm);
       } catch (error) {
         renderError(error);
       }
@@ -290,4 +385,22 @@ guessForm.addEventListener("submit", async (event) => {
       break;
   }
 });
-// End -- Guess Form Listeners
+
+scoreForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  show(choiceForm);
+});
+
+resultForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  switch (event.submitter.name) {
+    case "resultBackButton":
+      show(choiceForm);
+      break;
+    case "resultNextButton":
+      await setupChoice();
+      break;
+  }
+});

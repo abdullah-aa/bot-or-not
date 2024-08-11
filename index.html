@@ -15,44 +15,54 @@
   </head>
 
   <body>
-    <header class="marginMdBottom">
+    <header>
       <img src="img/botOrNotBanner" class="centralImage">
     </header>
 
-    <form id="welcomeForm" class="flexColCenter">
+    <form id="welcomeForm" class="flexColAlignCenter marginMdTop">
       <div class="centralLogoFrame">
         <img src="img/botOrNotLogo" class="centralLogoImage">
       </div>
-      <div  class="section flexColCenter">
+
+      <div  class="section flexColAlignCenter">
         <h4>Welcome to Bot-Or-Not!</h4>
-        <p>
+
+        <p class="textAlignCenter">
           Bot-Or-Not is a little game to test your ability to see through Bot Speak.
         </p>
-        <p>
+
+        <p class="textAlignCenter">
           Write something about images from the news, and see if other players think it was written by you ...or a bot 🤖
         </p>
+
         <button type="submit" class="marginSmTopAndBottom">
           <strong>Let's get started!</strong>
         </button>
       </div>
     </form>
 
-    <form id="authForm" class="flexColCenter hidden">
-      <div class="flexCenter xSmallFlexGap marginMdBottom">
-        <div class="flexColEnd">
-          <label class="marginSmTopAndBottom" for="email">Email:</label>
-          <label class="marginSmTopAndBottom" for="password">Password:</label>
+    <form id="authForm" class="flexColAlignCenter marginMdTop hidden">
+      <fieldset class="marginSmBottom">
+        <legend>Log In or Sign Up</legend>
+        <div class="flexJustifyCenter xsFlexGap marginMdBottom">
+          <div class="flexColAlignEnd">
+            <label class="marginSmTopAndBottom" for="email">Email:</label>
+            <label class="marginSmTopAndBottom" for="password">Password:</label>
+          </div>
+
+          <div class="flexColAlignStart">
+            <input class="marginSmTopAndBottom" type="text" id="email" name="email" />
+            <input class="marginSmTopAndBottom" type="password" id="password" name="password" />
+          </div>
         </div>
-        <div class="flexColStart">
-          <input class="marginSmTopAndBottom" type="text" id="email" name="email" />
-          <input class="marginSmTopAndBottom" type="password" id="password" name="password" />
-        </div>
-      </div>
-      <div class="flexSpaceEvenly">
+      </fieldset>
+
+      <div class="flexJustifyEvenly">
         <div class="flexCol">
           <strong>Registered already?</strong>
           <button id="loginButton" name="loginButton" type="submit" class="marginSmTopAndBottom">Log In</button>
         </div>
+
         <div class="flexCol">
           <strong>First time here?</strong>
           <button id="signupButton" name="signupButton" type="submit" class="marginSmTopAndBottom">Sign Up</button>
@@ -60,95 +70,166 @@
       </div>
     </form>
 
-    <form id="interestsForm" class="flexColCenter hidden">
-      <fieldset>
-        <legend>What are you interested in today?</legend>
-        <div class="marginSm">
-          <div class="flexSpaceBetween">
-            <label for="Entertainment">Entertainment</label>
-            <input type="radio" id="Entertainment" value="Entertainment" name="interest" checked />
-          </div>
-        </div>
-        <div class="marginSm">
-          <div class="flexSpaceBetween">
-            <label for="Business">Business</label>
-            <input type="radio" id="Business" value="Business" name="interest" />
-          </div>
-        </div>
-        <div class="marginSm">
-          <div class="flexSpaceBetween">
-            <label for="Sports">Sports</label>
-            <input type="radio" id="Sports" value="Sports" name="interest" />
-          </div>
-        </div>
-        <div class="marginSm">
-          <div class="flexSpaceBetween">
-            <label for="Politics">Politics</label>
-            <input type="radio" id="Politics" value="Politics" name="interest" />
-          </div>
-        </div>
-      </fieldset>
-      <button id="interestsSubmitButton" type="submit" class="marginSm">Submit</button>
-    </form>
+    <form id="choiceForm" class="flexColAlignCenter hidden lgFlexGap">
+      <h2>What do you want to do?</h2>
 
-    <form id="choiceForm" class="flexColCenter hidden">
-      <h3>What do you want to do?</h3>
-      <div class="flexSpaceEvenly marginMdBottom">
-        <div class="flexColCenter">
+      <div class="flexJustifyEvenly">
+        <div class="flexColAlignCenter xsFlexGap">
           <strong>Say Something!</strong>
-          <button id="takeToPromptButton" name="takeToPromptButton" style="background-image: url('img/enterPrompt')" class="imageButton"></button>
+          <button id="takeToPromptButton"
+            name="takeToPromptButton"
+            style="background-image: url('img/enterPrompt')"
+            class="imageButton">
+          </button>
         </div>
-        <div class="flexColCenter">
-          <strong>Who was it?</strong>
-          <button id="takeToGuessButton" name="takeToGuessButton" style="background-image: url('img/enterGuess')" class="imageButton"></button>
+
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Guess Who?</strong>
+          <button id="takeToGuessButton"
+            name="takeToGuessButton"
+            style="background-image: url('img/enterGuess')"
+            class="imageButton">
+          </button>
         </div>
       </div>
-      <button id="takeToInterestButton" name="takeToInterestButton" type="submit" class="margin">Switch Interest</button>
+
+      <div class="flexColAlignCenter xsFlexGap">
+        <strong>See All Scores</strong>
+        <button id="takeToAllScoreButton"
+          name="takeToAllScoreButton"
+          style="background-image: url('img/viewScores')"
+          class="imageButton">
+        </button>
+      </div>
     </form>
 
-    <div id="loadingScreen" class="flexColCenter hidden">
+    <div id="loadingScreen" class="flexColAlignCenter hidden">
       <img src="img/runner.gif" alt="Stick man running endlessly" class="centralImage" />
-      <h5 id="loadingHeader">Loading Image...</h5>
+      <h5 id="loadingHeader">Loading...</h5>
     </div>
 
-    <form id="promptForm" class="flexColCenter smallFlexGap hidden">
+    <form id="interestsForm" class="flexCol hidden negativeMarginXsTop">
+      <div class="flexJustifyBetween">
+        <div class="flexAlignCenter">
+          <button
+            id="prevInterestButton"
+            name="prevInterestButton"
+            style="background-image: url('img/previous')"
+            type="submit"
+            class="marginSm navButton">
+          </button>
+          <strong>Topic:</strong>
+        </div>
+        <div class="flexDeadCenter">
+          <h2 id="interestHeader"></h2>
+        </div>
+        <div class="flexColJustifyCenter">
+          <button
+            id="nextInterestButton"
+            name="nextInterestButton"
+            style="background-image: url('img/next')"
+            type="submit"
+            class="marginSm navButton">
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <form id="promptForm" class="flexColAlignCenter smallFlexGap hidden">
       <div class="section">
         <img id="promptImage" class="centralImage" />
-        <div id="promptText" class="marginSmTopAndBottom"></div>
+        <div id="promptText" class="marginSmTopAndBottom divWithScroll"></div>
       </div>
-      <label for="promptInput">Say something about this image!</label>
-      <div class="marginLgBottom">
-        <div class="flexColCenter">
-          <textarea
-            id="promptInput"
-            name="promptInput"
-            maxlength="150"
-            placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
-          <span id="inputPromptCharCount"></span>
-        </div>
+
+      <strong>Say something about this image!</strong>
+      <div class="marginXlBottom flexColAlignCenter">
+        <textarea
+          id="promptInput"
+          name="promptInput"
+          maxlength="150"
+          placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
+        <span id="inputPromptCharCount"></span>
         <button id="promptButton" name="promptButton" type="submit">Submit</button>
       </div>
-      <div class="flexSpaceEvenly">
+
+      <div class="flexJustifyEvenly">
         <button id="promptSkipButton" name="promptSkipButton" type="submit"><small>Skip</small></button>
         <button id="promptBackButton" name="promptBackButton" type="submit"><small>Back To Menu</small></button>
       </div>
     </form>
 
-    <form id="guessForm" class="flexColCenter hidden">
-      <h4 class="marginSmTopAndBottom"><q id="guessPrompt"></q></h4>
+    <form id="guessForm" class="flexColAlignCenter hidden">
+      <h4 class="marginSmTopAndBottom textAlignCenter"><q id="guessPrompt"></q></h4>
+
       <div class="section">
         <img id="guessImage" class="centralImage" />
         <div id="guessText" class="marginSmTopAndBottom"></div>
       </div>
+
       <h3>Was it a human or a bot? 🤖</h3>
-      <div class="flexSpaceEvenly marginLgBottom">
+      <div class="flexJustifyEvenly marginXlBottom">
         <button id="guessNotButton" name="guessNotButton" type="submit" style="background-image: url('img/isNot')" class="imageButton"></button>
         <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot')" class="imageButton"></button>
       </div>
-      <div class="flexSpaceEvenly">
+
+      <div class="flexJustifyEvenly">
         <button id="guessSkipButton" name="guessSkipButton" type="submit"><small>Skip</small></button>
         <button id="guessBackButton" name="guessBackButton" type="submit"><small>Back To Menu</small></button>
       </div>
+    </form>
+
+    <form id="scoreForm" class="flexColAlignCenter hidden">
+      <div class="flexColAlignCenter marginLgBottom">
+        <strong>Total Guesses</strong>
+        <strong id="scoreTotal"></strong>
+      </div>
+
+      <div class="flexJustifyEvenly lgFlexGap marginXlBottom">
+        <div class="flexColAlignCenter mdFlexGap">
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Wins</strong>
+            <strong id="scoreWins"></strong>
+          </div>
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Rank</strong>
+            <strong id="scoreWinRank"></strong>
+          </div>
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Top Wins</strong>
+            <strong id="scoreHighestWins"></strong>
+          </div>
+        </div>
+        <div class="flexColAlignCenter mdFlexGap">
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Rate</strong>
+            <strong id="scoreRate"></strong>
+          </div>
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Rank</strong>
+            <strong id="scoreRateRank"></strong>
+          </div>
+          <div class="flexColAlignCenter xsFlexGap">
+            <strong>Top Rate</strong>
+            <strong id="scoreHighestRate"></strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="flexJustifyEvenly">
+        <button id="scoresBackButton" name="scoresBackButton" type="submit"><small>Back To Menu</small></button>
+      </div>
+    </form>
+
+    <form id="resultForm" class="flexColAlignCenter hidden">
+      <fieldset class="section">
+        <legend id="resultMessage"></legend>
+        <img id="resultImage" class="centralImage marginXlBottom"/>
+
+        <div class="flexJustifyEvenly">
+          <button id="resultBackButton" name="resultBackButton" type="submit"><small>Back To Menu</small></button>
+          <button id="resultNextButton" name="resultNextButton" type="submit"><small>Next</small></button>
+        </div>
+      </fieldset>
     </form>
 
     <div id="errorDiv" class="hidden">
@@ -156,6 +237,7 @@
       <p id="errorMessage"></p>
     </div>
 <!--    <button id="resetButton">Reset</button>-->
+
     <script src="js/app.js"></script>
   </body>
 </html>

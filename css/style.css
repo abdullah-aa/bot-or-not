@@ -241,24 +241,24 @@ video {
   width: 85%;
 }
 
-.halfSection {
-  width: 45%;
+.xsFlexGap {
+  gap: 0.25rem;
 }
 
-.quarterSection {
-  width: 20%;
+.smFlexGap {
+  gap: 0.5rem;
+}
+
+.mdFlexGap {
+  gap: 1rem;
+}
+
+.lgFlexGap {
+  gap: 2rem;
 }
 
 .marginSm {
   margin: 1rem;
-}
-
-.xSmallFlexGap {
-  gap: 0.25rem;
-}
-
-.smallFlexGap {
-  gap: 0.5rem;
 }
 
 .marginSmTopAndBottom {
@@ -276,6 +276,10 @@ video {
 }
 
 .marginLgBottom {
+  margin-bottom: 2rem;
+}
+
+.marginXlBottom {
   margin-bottom: 3rem;
 }
 
@@ -283,28 +287,36 @@ video {
   margin-bottom: 1rem;
 }
 
-.flexSpaceBetween {
+.marginMdTop {
+  margin-top: 1.5rem;
+}
+
+.negativeMarginXsTop {
+  margin-top: -0.75rem;
+}
+
+.flexJustifyBetween {
   display: flex;
   justify-content: space-between;
 }
 
-.flexCenter {
+.flexJustifyCenter {
   display: flex;
   justify-content: center;
 }
 
-.flexEnd {
+.flexAlignCenter {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
 }
 
-.flexColStart {
+.flexColAlignStart {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.flexColEnd {
+.flexColAlignEnd {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -315,16 +327,26 @@ video {
   flex-direction: column;
 }
 
-.flexColCenter {
+.flexColAlignCenter {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.flexColJustifyCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .flexDeadCenter {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.fullWidth {
+  width: 100%;
 }
 
 .centralLogoFrame {
@@ -345,7 +367,7 @@ video {
   max-height: 25rem;
 }
 
-.flexSpaceEvenly {
+.flexJustifyEvenly {
   display: flex;
   justify-content: space-evenly;
   width: 100%;
@@ -354,6 +376,12 @@ video {
 .imageButton {
   width: 10rem;
   height: 10rem;
+  background-size: cover;
+}
+
+.navButton {
+  height: 35px;
+  width: 25px;
   background-size: cover;
 }
 
@@ -370,6 +398,17 @@ textarea {
   resize: none;
 }
 
-p {
+.textAlignCenter {
   text-align: center;
+}
+
+.blockDisplay {
+  display: block;
+}
+
+.divWithScroll {
+  border: 1px solid black;
+  padding: 0.25rem;
+  overflow-y: auto;
+  max-height: 5rem;
 }

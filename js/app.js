@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-const MAX_PROMPT_LENGTH = 150;
+const MAX_PROMPT_LENGTH = 175;
 const INTERESTS = ["Entertainment", "Business", "Politics", "Sports"];
 const CHOICES = {
   PROMPT: "prompt",
@@ -64,24 +64,7 @@ const scoreHighestRate = document.getElementById("scoreHighestRate");
 
 const resultForm = document.getElementById("resultForm");
 const resultImage = document.getElementById("resultImage");
-const resultHeader = document.getElementById("resultHeader");
 const resultMessage = document.getElementById("resultMessage");
-
-const errorDiv = document.getElementById("errorDiv");
-const errorCode = document.getElementById("errorCode");
-const errorMessage = document.getElementById("errorMessage");
-
-// const resetButton = document.getElementById("resetButton");
-//
-// resetButton.addEventListener("click", () => {
-//   const reset = httpsCallable(functions, "reset");
-//   reset()
-//     .then(() => {
-//       renderError();
-//       window.location.reload();
-//     })
-//     .catch(renderError);
-// });
 
 const UI_ELEMENTS = [
   welcomeForm,
@@ -93,7 +76,6 @@ const UI_ELEMENTS = [
   scoreForm,
   resultForm,
   loadingScreen,
-  errorDiv,
 ];
 
 // Helpers/Utilities
@@ -109,10 +91,10 @@ const show = (...elements) => {
 };
 
 const renderError = (error) => {
-  errorCode.innerText = error.code;
-  errorMessage.innerText = error.message;
-
-  show(errorDiv);
+  if (error.code === "auth/email-already-in-use") {
+  } else {
+    alert("Something went wrong, please retry... 😓");
+  }
 };
 
 const updateCharCount = () => {
@@ -133,10 +115,10 @@ const getImage = async () => {
 
     promptImage.src = _RESPONSE.imageUrl;
     promptText.innerHTML = _RESPONSE.description
-      ? `<small class="blockDisplay">Image Description</small><strong><q>${_RESPONSE.description.replace(
+      ? `<small>Image Description</small><div class="divWithScroll"><strong><q>${_RESPONSE.description.replace(
           "[...]",
           ""
-        )}</q></strong>`
+        )}</q></strong></div>`
       : "<strong>No description available, sorry... 😓</strong>";
     promptText.scrollTop = 0;
     promptInput.value = "";
@@ -160,7 +142,7 @@ const getChallenge = async () => {
     guessImage.src = _RESPONSE.imageUrl;
     guessPrompt.innerHTML = _RESPONSE.prompt;
     guessText.innerHTML = _RESPONSE.description
-      ? `written after reading this <div class="divWithScroll"><strong><q>${_RESPONSE.description.replace(
+      ? `<small>Image Description</small><div class="divWithScroll"><strong><q>${_RESPONSE.description.replace(
           "[...]",
           ""
         )}</q></strong></div>`

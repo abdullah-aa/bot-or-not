@@ -19,31 +19,29 @@
       <img src="img/botOrNotBanner" class="centralImage">
     </header>
 
-    <form id="welcomeForm" class="flexColAlignCenter marginMdTop">
+    <form id="welcomeForm" class="flexColAlignCenter">
       <div class="centralLogoFrame">
         <img src="img/botOrNotLogo" class="centralLogoImage">
       </div>
 
-      <div  class="section flexColAlignCenter">
+      <div  class="flexColAlignCenter">
         <h4>Welcome to Bot-Or-Not!</h4>
 
-        <p class="textAlignCenter">
+        <p>
           Bot-Or-Not is a little game to test your ability to see through Bot Speak.
         </p>
 
-        <p class="textAlignCenter">
+        <p>
           Write something about images from the news, and see if other players think it was written by you ...or a bot 🤖
         </p>
 
-        <button type="submit" class="marginSmTopAndBottom">
-          <strong>Let's get started!</strong>
-        </button>
+        <button type="submit" class="startButton imageMdButton marginSmTopAndBottom"></button>
       </div>
     </form>
 
-    <form id="authForm" class="flexColAlignCenter marginMdTop hidden">
+    <form id="authForm" class="flexColAlignCenter hidden">
       <fieldset class="marginSmBottom">
-        <legend>Log In or Sign Up</legend>
+        <legend>Log In / Sign Up</legend>
         <div class="flexJustifyCenter xsFlexGap marginMdBottom">
           <div class="flexColAlignEnd">
             <label class="marginSmTopAndBottom" for="email">Email:</label>
@@ -59,57 +57,63 @@
 
       <div class="flexJustifyEvenly">
         <div class="flexCol">
-          <strong>Registered already?</strong>
-          <button id="loginButton" name="loginButton" type="submit" class="marginSmTopAndBottom">Log In</button>
+          <strong>Registered?</strong>
+          <button id="loginButton" name="loginButton" type="submit" class="loginButton imageSmButton marginSmTopAndBottom"></button>
         </div>
 
         <div class="flexCol">
-          <strong>First time here?</strong>
-          <button id="signupButton" name="signupButton" type="submit" class="marginSmTopAndBottom">Sign Up</button>
+          <strong>First time?</strong>
+          <button id="signupButton" name="signupButton" type="submit" class="registerButton imageSmButton marginSmTopAndBottom"></button>
         </div>
       </div>
     </form>
 
-    <form id="choiceForm" class="flexColAlignCenter hidden lgFlexGap">
+    <form id="choiceForm" class="flexColAlignCenter lgFlexGap hidden">
       <h2>What do you want to do?</h2>
 
-      <div class="flexJustifyEvenly">
-        <div class="flexColAlignCenter xsFlexGap">
-          <strong>Say Something!</strong>
-          <button id="takeToPromptButton"
-            name="takeToPromptButton"
-            style="background-image: url('img/enterPrompt')"
-            class="imageButton">
-          </button>
-        </div>
+      <fieldset class="flexColAlignCenter xsFlexGap">
+        <legend>Say Something!</legend>
+        <button
+          id="takeToPromptButton"
+          name="takeToPromptButton"
+          style="background-image: url('img/enterPrompt')"
+          class="imageLgButton">
+        </button>
+        <p>Post whatever comes to mind after seeing the image</p>
+        <p>Other players guess whether you or a chatbot made the post</p>
+      </fieldset>
 
-        <div class="flexColAlignCenter xsFlexGap">
-          <strong>Guess Who?</strong>
-          <button id="takeToGuessButton"
-            name="takeToGuessButton"
-            style="background-image: url('img/enterGuess')"
-            class="imageButton">
-          </button>
-        </div>
-      </div>
+      <fieldset class="flexColAlignCenter xsFlexGap">
+        <legend>Guess Who?</legend>
+        <button
+          id="takeToGuessButton"
+          name="takeToGuessButton"
+          style="background-image: url('img/enterGuess')"
+          class="imageLgButton">
+        </button>
+        <p>Guess whether the post presented was made by a human or a chatbot</p>
+        <p>Think you can see through Bot-Speak?</p>
+      </fieldset>
 
-      <div class="flexColAlignCenter xsFlexGap">
-        <strong>See All Scores</strong>
-        <button id="takeToAllScoreButton"
+      <fieldset class="flexColAlignCenter xsFlexGap">
+        <legend>View Scores</legend>
+        <button
+          id="takeToAllScoreButton"
           name="takeToAllScoreButton"
           style="background-image: url('img/viewScores')"
-          class="imageButton">
+          class="imageLgButton">
         </button>
-      </div>
+        <p>Check out your scores and see how you rank against other players</p>
+      </fieldset>
     </form>
 
-    <div id="loadingScreen" class="flexColAlignCenter hidden">
-      <img src="img/runner.gif" alt="Stick man running endlessly" class="centralImage" />
-      <h5 id="loadingHeader">Loading...</h5>
+    <div id="loadingScreen" class="flexColAlignCenter loadingImage hidden">
+      <img src="img/loading" alt="Loading..." class="centralImage" />
     </div>
 
-    <form id="interestsForm" class="flexCol hidden negativeMarginXsTop">
-      <div class="flexJustifyBetween">
+    <form id="interestsForm" class="flexColAlignCenter hidden">
+      <p>Current Topic</p>
+      <div class="flexJustifyBetween fullWidth">
         <div class="flexAlignCenter">
           <button
             id="prevInterestButton"
@@ -118,7 +122,6 @@
             type="submit"
             class="marginSm navButton">
           </button>
-          <strong>Topic:</strong>
         </div>
         <div class="flexDeadCenter">
           <h2 id="interestHeader"></h2>
@@ -135,46 +138,50 @@
       </div>
     </form>
 
-    <form id="promptForm" class="flexColAlignCenter smallFlexGap hidden">
-      <div class="section">
+    <form id="promptForm" class="flexColAlignCenter hidden">
+      <div class="internalBorder">
         <img id="promptImage" class="centralImage" />
-        <div id="promptText" class="marginSmTopAndBottom divWithScroll"></div>
+        <div id="promptText" class="marginSmTopAndBottom imageDescription"></div>
       </div>
 
-      <strong>Say something about this image!</strong>
-      <div class="marginXlBottom flexColAlignCenter">
-        <textarea
-          id="promptInput"
-          name="promptInput"
-          maxlength="150"
-          placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖"></textarea>
-        <span id="inputPromptCharCount"></span>
-        <button id="promptButton" name="promptButton" type="submit">Submit</button>
-      </div>
+      <fieldset class="marginXlBottom">
+        <legend>Post Something!</legend>
+        <div class="flexColAlignCenter smFlexGap">
+          <textarea
+            id="promptInput"
+            name="promptInput"
+            maxlength="175"
+            placeholder="Other people will be reading this, will you pass for a bot... OR NOT?? 😋 😈 🤖">
+          </textarea>
+          <p id="inputPromptCharCount"></p>
+          <button id="promptButton" name="promptButton" class="promptButton imageSmButton" type="submit"></button>
+        </div>
+      </fieldset>
 
       <div class="flexJustifyEvenly">
-        <button id="promptSkipButton" name="promptSkipButton" type="submit"><small>Skip</small></button>
-        <button id="promptBackButton" name="promptBackButton" type="submit"><small>Back To Menu</small></button>
+        <button id="promptBackButton" name="promptBackButton" class="menuButton imageSmButton" type="submit"></button>
+        <button id="promptSkipButton" name="promptSkipButton" class="skipButton imageSmButton" type="submit"></button>
       </div>
     </form>
 
     <form id="guessForm" class="flexColAlignCenter hidden">
-      <h4 class="marginSmTopAndBottom textAlignCenter"><q id="guessPrompt"></q></h4>
+      <small>Someone said:</small>
+      <h4 class="marginSmTopAndBottom textAlignCenter guessPrompt"><q id="guessPrompt"></q></h4>
 
-      <div class="section">
+      <div class="internalBorder">
         <img id="guessImage" class="centralImage" />
-        <div id="guessText" class="marginSmTopAndBottom"></div>
+        <div id="guessText" class="marginSmTopAndBottom imageDescription"></div>
       </div>
 
-      <h3>Was it a human or a bot? 🤖</h3>
-      <div class="flexJustifyEvenly marginXlBottom">
-        <button id="guessNotButton" name="guessNotButton" type="submit" style="background-image: url('img/isNot')" class="imageButton"></button>
-        <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot')" class="imageButton"></button>
-      </div>
+      <fieldset class="flexJustifyEvenly marginXlBottom">
+        <legend>Was it a Bot... or a Not?</legend>
+        <button id="guessBotButton" name="guessBotButton" type="submit" style="background-image: url('img/isBot')" class="imageMdButton"></button>
+        <button id="guessNotButton" name="guessNotButton" type="submit" style="background-image: url('img/isNot')" class="imageMdButton"></button>
+      </fieldset>
 
       <div class="flexJustifyEvenly">
-        <button id="guessSkipButton" name="guessSkipButton" type="submit"><small>Skip</small></button>
-        <button id="guessBackButton" name="guessBackButton" type="submit"><small>Back To Menu</small></button>
+        <button id="guessBackButton" name="guessBackButton" class="menuButton imageSmButton" type="submit"></button>
+        <button id="guessSkipButton" name="guessSkipButton" class="skipButton imageSmButton" type="submit"></button>
       </div>
     </form>
 
@@ -216,27 +223,19 @@
       </div>
 
       <div class="flexJustifyEvenly">
-        <button id="scoresBackButton" name="scoresBackButton" type="submit"><small>Back To Menu</small></button>
+        <button id="scoresBackButton" name="scoresBackButton" class="menuButton imageSmButton" type="submit"></button>
       </div>
     </form>
 
     <form id="resultForm" class="flexColAlignCenter hidden">
-      <fieldset class="section">
-        <legend id="resultMessage"></legend>
-        <img id="resultImage" class="centralImage marginXlBottom"/>
+      <h2 id="resultMessage"></h2>
+      <img id="resultImage" class="centralImage marginXlBottom"/>
 
-        <div class="flexJustifyEvenly">
-          <button id="resultBackButton" name="resultBackButton" type="submit"><small>Back To Menu</small></button>
-          <button id="resultNextButton" name="resultNextButton" type="submit"><small>Next</small></button>
-        </div>
-      </fieldset>
+      <div class="flexJustifyEvenly">
+        <button id="resultBackButton" name="resultBackButton" class="menuButton imageSmButton" type="submit"></button>
+        <button id="resultNextButton" name="resultNextButton" class="nextItem imageSmButton" type="submit"></button>
+      </div>
     </form>
-
-    <div id="errorDiv" class="hidden">
-      <p id="errorCode"></p>
-      <p id="errorMessage"></p>
-    </div>
-<!--    <button id="resetButton">Reset</button>-->
 
     <script src="js/app.js"></script>
   </body>

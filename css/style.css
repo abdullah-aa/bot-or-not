@@ -20,6 +20,9 @@ html {
 body {
   max-width: 27rem;
   margin: 0 auto;
+  background-image: url("../img/background");
+  background-repeat: repeat;
+  background-size: auto;
 }
 
 /*
@@ -237,10 +240,6 @@ video {
  * Custom CSS
  ****************************************************/
 
-.section {
-  width: 85%;
-}
-
 .xsFlexGap {
   gap: 0.25rem;
 }
@@ -269,6 +268,11 @@ video {
 .marginXsTopAndBottom {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.marginMdTopAndBottom {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .marginMdBottom {
@@ -364,7 +368,7 @@ video {
 
 .centralImage {
   width: 100%;
-  max-height: 25rem;
+  max-height: 20rem;
 }
 
 .flexJustifyEvenly {
@@ -373,15 +377,27 @@ video {
   width: 100%;
 }
 
-.imageButton {
-  width: 10rem;
-  height: 10rem;
+.imageLgButton {
+  width: 15rem;
+  height: 15rem;
+  background-size: cover;
+}
+
+.imageMdButton {
+  width: 7rem;
+  height: 7rem;
+  background-size: cover;
+}
+
+.imageSmButton {
+  width: 5rem;
+  height: 5rem;
   background-size: cover;
 }
 
 .navButton {
-  height: 35px;
-  width: 25px;
+  height: 2rem;
+  width: 2rem;
   background-size: cover;
 }
 
@@ -393,12 +409,19 @@ legend {
 }
 
 textarea {
-  width: 20rem;
-  height: 5rem;
+  padding: 1rem;
+  width: 10rem;
+  height: 10rem;
   resize: none;
+  background: blue;
+  color: white;
 }
 
 .textAlignCenter {
+  text-align: center;
+}
+
+p {
   text-align: center;
 }
 
@@ -407,8 +430,61 @@ textarea {
 }
 
 .divWithScroll {
-  border: 1px solid black;
-  padding: 0.25rem;
+  border: 1px solid orange;
+  color: black;
+  background-color: yellow;
+  padding: 0.5rem;
   overflow-y: auto;
   max-height: 5rem;
+}
+
+.menuButton {
+  background-image: url("../img/menu");
+}
+
+.skipButton {
+  background-image: url("../img/skip");
+}
+
+.promptButton {
+  background-image: url("../img/sendPrompt");
+  background-size: contain;
+}
+
+.startButton {
+  background-image: url("../img/start");
+  background-size: contain;
+}
+
+.loginButton {
+  background-image: url("../img/login");
+  background-size: contain;
+}
+
+.registerButton {
+  background-image: url("../img/register");
+  background-size: contain;
+}
+
+.nextItem {
+  background-image: url("../img/nextItem");
+  background-size: contain;
+}
+
+form {
+  color: #49ff02;
+  background: #000000;
+  border: 2px solid orange;
+  margin: 2rem 10%;
+  padding: 1rem;
+}
+
+.loadingImage {
+  padding: 2rem 10%;
+}
+
+.guessPrompt {
+  background: green;
+  color: white;
+  padding: 0.5rem;
 }

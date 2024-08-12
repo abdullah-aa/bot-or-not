@@ -103,7 +103,8 @@
           style="background-image: url('img/viewScores')"
           class="imageLgButton">
         </button>
-        <p>Check out your scores and see how you rank against other players</p>
+        <p>How many messages did you correctly identify?</p>
+        <p>...and how many did players did you deceive?</p>
       </fieldset>
     </form>
 
@@ -185,42 +186,42 @@
       </div>
     </form>
 
-    <form id="scoreForm" class="flexColAlignCenter hidden">
-      <div class="flexColAlignCenter marginLgBottom">
-        <strong>Total Guesses</strong>
-        <strong id="scoreTotal"></strong>
-      </div>
+    <form id="scoreForm" class="flexColAlignCenter lgFlexGap hidden">
+      <fieldset class="flexColAlignCenter mdFlexGap">
+        <legend>Guesses</legend>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Total</strong>
+          <strong id="scoreTotal"></strong>
+        </div>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Guessed Right!</strong>
+          <strong id="scoreWins"></strong>
+        </div>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Rank</strong>
+          <strong id="scoreWinRank"></strong>
+        </div>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Top Guess Count</strong>
+          <strong id="scoreHighestWins"></strong>
+        </div>
+      </fieldset>
 
-      <div class="flexJustifyEvenly lgFlexGap marginXlBottom">
-        <div class="flexColAlignCenter mdFlexGap">
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Wins</strong>
-            <strong id="scoreWins"></strong>
-          </div>
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Rank</strong>
-            <strong id="scoreWinRank"></strong>
-          </div>
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Top Wins</strong>
-            <strong id="scoreHighestWins"></strong>
-          </div>
+      <fieldset class="flexColAlignCenter mdFlexGap">
+        <legend>Deceptions</legend>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Players Deceived!</strong>
+          <strong id="scoreDeceptions"></strong>
         </div>
-        <div class="flexColAlignCenter mdFlexGap">
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Rate</strong>
-            <strong id="scoreRate"></strong>
-          </div>
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Rank</strong>
-            <strong id="scoreRateRank"></strong>
-          </div>
-          <div class="flexColAlignCenter xsFlexGap">
-            <strong>Top Rate</strong>
-            <strong id="scoreHighestRate"></strong>
-          </div>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Rank</strong>
+          <strong id="scoreDeceptionRank"></strong>
         </div>
-      </div>
+        <div class="flexColAlignCenter xsFlexGap">
+          <strong>Top Deceits Count</strong>
+          <strong id="scoreHighestDeceptions"></strong>
+        </div>
+      </fieldset>
 
       <div class="flexJustifyEvenly">
         <button id="scoresBackButton" name="scoresBackButton" class="menuButton imageSmButton" type="submit"></button>

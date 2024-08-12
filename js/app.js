@@ -58,9 +58,11 @@ const scoreTotal = document.getElementById("scoreTotal");
 const scoreWins = document.getElementById("scoreWins");
 const scoreWinRank = document.getElementById("scoreWinRank");
 const scoreHighestWins = document.getElementById("scoreHighestWins");
-const scoreRate = document.getElementById("scoreRate");
-const scoreRateRank = document.getElementById("scoreRateRank");
-const scoreHighestRate = document.getElementById("scoreHighestRate");
+const scoreDeceptions = document.getElementById("scoreDeceptions");
+const scoreDeceptionRank = document.getElementById("scoreDeceptionRank");
+const scoreHighestDeceptions = document.getElementById(
+  "scoreHighestDeceptions"
+);
 
 const resultForm = document.getElementById("resultForm");
 const resultImage = document.getElementById("resultImage");
@@ -161,18 +163,18 @@ const populateScoreContainer = () => {
     wins: 0,
     winRank: 0,
     highestWins: 0,
-    rate: 0,
-    rateRank: 0,
-    highestRate: 0,
+    deceptions: 0,
+    deceptionRank: 0,
+    highestDeceptions: 0,
   };
 
   scoreTotal.innerText = scoreData.total;
   scoreWins.innerText = scoreData.wins;
   scoreWinRank.innerText = scoreData.winRank;
   scoreHighestWins.innerText = scoreData.highestWins;
-  scoreRate.innerText = `${scoreData.rate}%`;
-  scoreRateRank.innerText = scoreData.rateRank;
-  scoreHighestRate.innerText = `${scoreData.highestRate}%`;
+  scoreDeceptions.innerText = scoreData.deceptions;
+  scoreDeceptionRank.innerText = scoreData.deceptionRank;
+  scoreHighestDeceptions.innerText = scoreData.highestDeceptions;
 };
 
 const getScores = async () => {

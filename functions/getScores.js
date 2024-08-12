@@ -22,7 +22,7 @@ exports.getScores = async (request) => {
       continue;
     }
 
-    const deceivingPrompts = new Set();
+    const deceivingPromptCounts = {};
     const scoreBoard = responseSnapshot.docs.reduce((acc, doc) => {
       const { uid: userUid, win, promptId } = doc.data();
 
@@ -37,45 +37,57 @@ exports.getScores = async (request) => {
       if (win) {
         acc[userUid].wins++;
       } else {
-        deceivingPrompts.add(promptId);
+        if (!deceivingPromptCounts[promptId]) {
+          deceivingPromptCounts[promptId] = 1;
+        } else {
+          deceivingPromptCounts[promptId]++;
+        }
       }
 
       return acc;
     }, {});
 
-    for (const deceivingPrompt of deceivingPrompts) {
-      const promptDoc = await db
-        .collection(getPromptCollectionName(interest))
-        .doc(deceivingPrompt)
-        .get();
+    const userPromptsSnapshot = await db
+      .collection(getPromptCollectionName(interest))
+      .where("uid", "==", uid)
+      .get();
 
-      const { uid: userUid } = promptDoc.data();
-      if (!scoreBoard[userUid]) {
-        scoreBoard[userUid] = {
-          deceptions: 1,
-        };
-      } else {
-        scoreBoard[userUid].deceptions++;
-      }
-    }
+    let mostDeceivingPrompt,
+      deceptions = 0;
+    userPromptsSnapshot.docs
+      .filter((doc) => deceivingPromptCounts[doc.id])
+      .forEach((doc) => {
+        const promptId = doc.id;
+        const promptDeceptions = deceivingPromptCounts[promptId];
+
+        if (
+          !deceptions ||
+          promptDeceptions > deceivingPromptCounts[mostDeceivingPrompt]
+        ) {
+          mostDeceivingPrompt = promptId;
+        }
+        deceptions = +promptDeceptions;
+      });
 
     const usersByWins = Object.keys(scoreBoard).sort(
       (a, b) => scoreBoard[b]?.wins - scoreBoard[a]?.wins
     );
-    const usersByDeceptions = Object.keys(scoreBoard).sort(
-      (a, b) => scoreBoard[b]?.deceptions - scoreBoard[a]?.deceptions
+    const deceivingPromptEntries = Object.entries(deceivingPromptCounts).sort(
+      (a, b) => b[1] - a[1]
     );
 
     scoreResults[interest] = {
       wins: scoreBoard[uid]?.wins || 0,
       total: scoreBoard[uid]?.total || 0,
-      deceptions: scoreBoard[uid]?.deceptions || 0,
+      deceptions: deceptions || 0,
 
       highestWins: scoreBoard[usersByWins[0]].wins,
       winRank: usersByWins.findIndex((id) => id === uid) + 1,
 
-      highestDeceptions: scoreBoard[usersByDeceptions[0]].deceptions,
-      deceptionRank: usersByDeceptions.findIndex((id) => id === uid) + 1,
+      highestDeceptions: deceivingPromptEntries[0][1],
+      deceptionRank:
+        deceivingPromptEntries.findIndex(([id]) => id === mostDeceivingPrompt) +
+        1,
     };
   }
 

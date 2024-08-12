@@ -12,29 +12,31 @@ const {
   validateRequest,
 } = require("./constants");
 
-const createOrUpdateNextPageDocument = async (
-  db,
-  interest,
-  newNextPage = 0
-) => {
-  const nextPageDoc = { nextPage: newNextPage };
+const createOrUpdateNextPageDocument = async (db, interest, newNextPage) => {
+  const nextPageDoc = { nextPage: 0 };
 
   await db.runTransaction(async (transaction) => {
     const nextPageDocRef = db.collection(NEXT_PAGE_COLLECTION).doc(interest);
 
     const currentNextPageDoc = await transaction.get(nextPageDocRef);
-    if (currentNextPageDoc.exists && newNextPage === 0) {
-      nextPageDoc.nextPage = currentNextPageDoc.data().nextPage;
-    } else {
-      transaction.set(nextPageDocRef, nextPageDoc);
+    if (currentNextPageDoc.exists) {
+      if (newNextPage === undefined) {
+        nextPageDoc.nextPage = currentNextPageDoc.data().nextPage;
+      } else {
+        nextPageDoc.nextPage = newNextPage;
+      }
     }
+
+    transaction.set(nextPageDocRef, nextPageDoc);
   });
 
   return nextPageDoc;
 };
 
 const callNewsAPI = async (db, interest, attempts, nextPage) => {
-  const newsQueryString = `https://newsdata.io/api/1/archive?apikey=${process.env.NEWSDATA_API_KEY}&category=${interest}&language=en&image=1`;
+  const newsQueryString = `https://newsdata.io/api/1/latest?apikey=${
+    process.env.NEWSDATA_API_KEY
+  }&category=${interest.toLowerCase()}&country=ca,us,gb,au,jp&timeframe=6&language=en&image=1`;
 
   try {
     const nextPageDoc = nextPage
@@ -108,7 +110,10 @@ const createImagesFromNewsAPI = async (db, interest) => {
     const articlesToSave = newsResultsObj.results.filter(
       (article) =>
         !articlesWithExistingDocuments.some(
-          (articleId) => articleId === article.article_id
+          (articleId) =>
+            articleId === article.article_id ||
+            !article.image_url ||
+            !article.description
         )
     );
 
@@ -142,7 +147,12 @@ const createImagesFromNewsAPI = async (db, interest) => {
 
 const retrieveImagesWithoutUserInput = async (db, interest, uid) => {
   const imageCollection = db.collection(getImageCollectionName(interest));
-  const allImagesSnapshot = await imageCollection.get();
+
+  const sixHoursAgo = new Date();
+  sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+  const allImagesSnapshot = await imageCollection
+    .where("createdAt", ">=", sixHoursAgo)
+    .get();
   let retrievedImages = allImagesSnapshot.docs;
 
   if (retrievedImages.length > 0) {
@@ -162,6 +172,8 @@ const retrieveImagesWithoutUserInput = async (db, interest, uid) => {
         (image) => !imagesWithUserInputSet.has(image.id)
       );
     }
+  } else {
+    await createOrUpdateNextPageDocument(db, interest);
   }
 
   return retrievedImages;

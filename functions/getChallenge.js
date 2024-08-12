@@ -11,9 +11,10 @@ const {
   getResponseCollectionName,
   getImageCollectionName,
   downloadFile,
+  getRandomSystemInstructions,
 } = require("./constants");
 
-const getPromptsWithoutUserResponse = async (db, interest, uid, type) => {
+const getNotBotPrompt = async (db, interest, uid) => {
   const responsesSnapshot = await db
     .collection(getResponseCollectionName(interest))
     .where("uid", "==", uid)
@@ -24,9 +25,11 @@ const getPromptsWithoutUserResponse = async (db, interest, uid, type) => {
     (response) => response.data().promptId
   );
 
+  const sixHoursAgo = new Date();
+  sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
   const allPromptsSnapshot = await db
     .collection(getPromptCollectionName(interest))
-    .where(type, "==", true)
+    .where("createdAt", ">=", sixHoursAgo)
     .get();
 
   const promptsWithoutUserResponses = allPromptsSnapshot.docs.filter(
@@ -41,7 +44,7 @@ const getPromptsWithoutUserResponse = async (db, interest, uid, type) => {
     const promptSnapshot = promptsWithoutUserResponses[randomPromptIndex];
     const promptDoc = promptSnapshot.data();
 
-    if (promptDoc.uid === uid) {
+    if (promptDoc.uid === uid || promptDoc[IS_BOT]) {
       promptsWithoutUserResponses.splice(randomPromptIndex, 1);
       continue;
     }
@@ -64,79 +67,66 @@ const getPromptsWithoutUserResponse = async (db, interest, uid, type) => {
   return promptToReturn;
 };
 
-const getNotBotPrompt = async (db, interest, uid) =>
-  await getPromptsWithoutUserResponse(db, interest, uid, IS_NOT);
-
-const getBotPrompt = async (db, interest, uid) => {
-  // 25% of the time, generate a new prompt even if there are prompts with user responses
-  const shouldGenerateNewPrompt = Math.random() > 0.75;
+const getBotPrompt = async (db, interest) => {
   let promptToReturn;
 
-  if (!shouldGenerateNewPrompt) {
-    promptToReturn = await getPromptsWithoutUserResponse(
-      db,
-      interest,
-      uid,
-      IS_BOT
-    );
-  }
+  const sixHoursAgo = new Date();
+  sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+  const imageCollection = await db
+    .collection(getImageCollectionName(interest))
+    .where("createdAt", ">=", sixHoursAgo)
+    .get();
 
-  if (!promptToReturn || shouldGenerateNewPrompt) {
-    const imageCollection = await db
-      .collection(getImageCollectionName(interest))
-      .get();
+  if (!imageCollection.empty) {
+    const randomImageSnapshot =
+      imageCollection.docs[
+        Math.floor(Math.random() * imageCollection.docs.length)
+      ];
+    const randomImageDoc = randomImageSnapshot.data();
+    const filePath = await downloadFile(randomImageDoc.imageUrl);
 
-    if (!imageCollection.empty) {
-      const randomImageSnapshot =
-        imageCollection.docs[
-          Math.floor(Math.random() * imageCollection.docs.length)
-        ];
-      const randomImageDoc = randomImageSnapshot.data();
-      const filePath = await downloadFile(randomImageDoc.imageUrl);
+    const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
+    const uploadResponse = await fileManager.uploadFile(filePath, {
+      mimeType: "image/jpeg",
+      displayName: `${interest}_${Date.now()}`,
+    });
 
-      const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
-      const uploadResponse = await fileManager.uploadFile(filePath, {
-        mimeType: "image/jpeg",
-        displayName: `${interest}_${Date.now()}`,
-      });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+      systemInstruction: getRandomSystemInstructions(),
+    });
 
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-pro",
-        systemInstruction:
-          "You are Tim, a snarky young adult from Toronto, Ontario.\n\nAnswer in a single short sentence, and use a sarcastic tone.\n\n",
-      });
-
-      const result = await model.generateContent([
-        {
-          fileData: {
-            mimeType: uploadResponse.file.mimeType,
-            fileUri: uploadResponse.file.uri,
-          },
+    const result = await model.generateContent([
+      {
+        fileData: {
+          mimeType: uploadResponse.file.mimeType,
+          fileUri: uploadResponse.file.uri,
         },
-        { text: "What are your thoughts on seeing this image?" },
-      ]);
+      },
+      {
+        text: `Here's what this image is supposed to be about: ${randomImageDoc.description}`,
+      },
+      { text: "What are your thoughts on seeing this image?" },
+    ]);
 
-      const newPromptData = {
-        [IS_BOT]: true,
-        [IS_NOT]: false,
-        createdAt: FieldValue.serverTimestamp(),
-        imageId: randomImageSnapshot.id,
-        prompt: result.response.text(),
-        uid: "itz_a_BOT",
-      };
-      const newPromptDoc = db
-        .collection(getPromptCollectionName(interest))
-        .doc();
-      await newPromptDoc.set(newPromptData);
+    const newPromptData = {
+      [IS_BOT]: true,
+      [IS_NOT]: false,
+      createdAt: FieldValue.serverTimestamp(),
+      imageId: randomImageSnapshot.id,
+      prompt: result.response.text(),
+      uid: "itz_a_BOT",
+    };
+    const newPromptDoc = db.collection(getPromptCollectionName(interest)).doc();
+    await newPromptDoc.set(newPromptData);
 
-      promptToReturn = {
-        description: randomImageDoc.description,
-        imageUrl: randomImageDoc.imageUrl,
-        prompt: newPromptData.prompt,
-        promptId: newPromptDoc.id,
-      };
-    }
+    promptToReturn = {
+      description: randomImageDoc.description,
+      imageUrl: randomImageDoc.imageUrl,
+      prompt: newPromptData.prompt,
+      promptId: newPromptDoc.id,
+    };
   }
 
   return promptToReturn;

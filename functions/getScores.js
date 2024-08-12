@@ -4,6 +4,7 @@ const {
   INTERESTS,
   validateRequest,
   getResponseCollectionName,
+  getPromptCollectionName,
 } = require("./constants");
 
 exports.getScores = async (request) => {
@@ -21,8 +22,9 @@ exports.getScores = async (request) => {
       continue;
     }
 
+    const deceivingPrompts = new Set();
     const scoreBoard = responseSnapshot.docs.reduce((acc, doc) => {
-      const { uid: userUid, win } = doc.data();
+      const { uid: userUid, win, promptId } = doc.data();
 
       if (!acc[userUid]) {
         acc[userUid] = {
@@ -34,31 +36,46 @@ exports.getScores = async (request) => {
       acc[userUid].total++;
       if (win) {
         acc[userUid].wins++;
+      } else {
+        deceivingPrompts.add(promptId);
       }
 
       return acc;
     }, {});
 
-    const calculateRate = (user) => user?.wins / user?.total;
+    for (const deceivingPrompt of deceivingPrompts) {
+      const promptDoc = await db
+        .collection(getPromptCollectionName(interest))
+        .doc(deceivingPrompt)
+        .get();
+
+      const { uid: userUid } = promptDoc.data();
+      if (!scoreBoard[userUid]) {
+        scoreBoard[userUid] = {
+          deceptions: 1,
+        };
+      } else {
+        scoreBoard[userUid].deceptions++;
+      }
+    }
+
     const usersByWins = Object.keys(scoreBoard).sort(
       (a, b) => scoreBoard[b]?.wins - scoreBoard[a]?.wins
     );
-    const usersByRates = Object.keys(scoreBoard).sort(
-      (a, b) => calculateRate(scoreBoard[b]) - calculateRate(scoreBoard[a])
+    const usersByDeceptions = Object.keys(scoreBoard).sort(
+      (a, b) => scoreBoard[b]?.deceptions - scoreBoard[a]?.deceptions
     );
 
     scoreResults[interest] = {
       wins: scoreBoard[uid]?.wins || 0,
       total: scoreBoard[uid]?.total || 0,
-      rate: scoreBoard[uid]
-        ? Math.floor(calculateRate(scoreBoard[uid]) * 100)
-        : 0,
+      deceptions: scoreBoard[uid]?.deceptions || 0,
 
       highestWins: scoreBoard[usersByWins[0]].wins,
       winRank: usersByWins.findIndex((id) => id === uid) + 1,
 
-      highestRate: Math.floor(calculateRate(scoreBoard[usersByRates[0]]) * 100),
-      rateRank: usersByRates.findIndex((id) => id === uid) + 1,
+      highestDeceptions: scoreBoard[usersByDeceptions[0]].deceptions,
+      deceptionRank: usersByDeceptions.findIndex((id) => id === uid) + 1,
     };
   }
 
